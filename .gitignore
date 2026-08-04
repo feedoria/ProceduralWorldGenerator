@@ -1,5 +1,5 @@
 # =========================================================
-# UNITY - GENERATED FOLDERS
+# UNITY - GENERATED FILES AND FOLDERS
 # =========================================================
 
 .utmp/
@@ -19,6 +19,23 @@
 
 
 # =========================================================
+# THIRD-PARTY / TUTORIAL ASSETS FROM THIS PROJECT
+# =========================================================
+
+/[Aa]ssets/BasicTerrainAsset/
+/[Aa]ssets/BasicTerrainAsset.meta
+
+/[Aa]ssets/GUITable/
+/[Aa]ssets/GUITable.meta
+
+/[Aa]ssets/TerrainDemoScene/
+/[Aa]ssets/TerrainDemoScene.meta
+
+/[Aa]ssets/TutorialInfo/
+/[Aa]ssets/TutorialInfo.meta
+
+
+# =========================================================
 # RIDER / JETBRAINS
 # =========================================================
 
@@ -33,6 +50,7 @@
 # =========================================================
 
 .vs/
+
 *.suo
 *.user
 *.userprefs
@@ -41,7 +59,7 @@
 
 
 # =========================================================
-# GENERATED PROJECT FILES
+# GENERATED IDE PROJECT FILES
 # =========================================================
 
 ExportedObj/
@@ -82,7 +100,7 @@ ExportedObj/
 
 
 # =========================================================
-# UNITY PACKAGES / BUILDS
+# UNITY PACKAGES AND EXPORTED BUILDS
 # =========================================================
 
 *.unitypackage
@@ -124,6 +142,7 @@ InitTestScene*.unity*
 
 /[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db
 /[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
+
 /[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
 /[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
 
@@ -144,12 +163,13 @@ InitTestScene*.unity*
 .LSOverride
 
 Thumbs.db
+Thumbs.db:encryptable
 ehthumbs.db
 Desktop.ini
 
 
 # =========================================================
-# SECRETS / LOCAL CONFIGURATION
+# LOCAL CONFIGURATION / SECRETS
 # =========================================================
 
 .env
