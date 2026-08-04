@@ -1,0 +1,128 @@
+# =========================================================
+# UNITY GENERATED FILES
+# =========================================================
+
+.utmp/
+
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+*.log
+
+
+# =========================================================
+# UNITY / BLENDER GENERATED FILES
+# =========================================================
+
+*.blend1
+*.blend1.meta
+
+
+# =========================================================
+# RIDER / JETBRAINS
+# =========================================================
+
+.idea/
+*.DotSettings.user
+
+/[Aa]ssets/Plugins/Editor/JetBrains*
+
+
+# =========================================================
+# VISUAL STUDIO
+# =========================================================
+
+.vs/
+*.suo
+*.user
+*.userprefs
+*.opendb
+*.VC.db
+
+
+# =========================================================
+# GENERATED PROJECT / SOLUTION FILES
+# =========================================================
+
+ExportedObj/
+.consulo/
+
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.tmp
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+
+
+# Generated Unity metadata for ignored/generated files
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+
+# =========================================================
+# GRADLE / ANDROID
+# =========================================================
+
+.gradle/
+
+*.apk
+*.aab
+
+
+# =========================================================
+# BUILDS / EXPORTED PACKAGES
+# =========================================================
+
+*.unitypackage
+*.unitypackage.meta
+*.app
+*.exe
+
+
+# =========================================================
+# CRASH REPORTS
+# =========================================================
+
+sysinfo.txt
+mono_crash.*
+crashlytics-build.properties
+
+
+# =========================================================
+# UNITY TEST RUNNER
+# =========================================================
+
+InitTestScene*.unity*
+/[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+
+# =========================================================
+# UNITY ADDRESSABLES GENERATED FILES
+# =========================================================
+
+/ServerData/
+/[Aa]ssets/StreamingAssets/aa*
+/[Aa]ssets/AddressableAssetsData/link.xml*
+/[Aa]ssets/Addressables_Temp*
+/[Aa]ssets/AddressableAssetsData/*/*.bin*
+
+
+# =========================================================
+# UNITY VISUAL SCRIPTING GENERATED FILES
+# =========================================================
+
+/[Aa]ssets/
