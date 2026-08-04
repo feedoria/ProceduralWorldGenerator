@@ -1,9 +1,4 @@
-# =========================================================
-# UNITY - GENERATED FILES AND FOLDERS
-# =========================================================
-
-.utmp/
-
+# Unity generated folders
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
@@ -11,60 +6,35 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
-
 /[Mm]emoryCaptures/
 /[Rr]ecordings/
 
-*.log
+# Third-party / tutorial assets
+/Assets/BasicTerrainAssets/
+/Assets/BasicTerrainAssets.meta
 
+/Assets/GUITable/
+/Assets/GUITable.meta
 
-# =========================================================
-# THIRD-PARTY / TUTORIAL ASSETS FROM THIS PROJECT
-# =========================================================
+/Assets/TerrainDemoScene_URP/
+/Assets/TerrainDemoScene_URP.meta
 
-/[Aa]ssets/BasicTerrainAsset/
-/[Aa]ssets/BasicTerrainAsset.meta
+/Assets/TutorialInfo/
+/Assets/TutorialInfo.meta
 
-/[Aa]ssets/GUITable/
-/[Aa]ssets/GUITable.meta
-
-/[Aa]ssets/TerrainDemoScene/
-/[Aa]ssets/TerrainDemoScene.meta
-
-/[Aa]ssets/TutorialInfo/
-/[Aa]ssets/TutorialInfo.meta
-
-
-# =========================================================
-# RIDER / JETBRAINS
-# =========================================================
-
-.idea/
+# Rider / JetBrains
+/.idea/
 *.DotSettings.user
 
-/[Aa]ssets/Plugins/Editor/JetBrains*
-
-
-# =========================================================
-# VISUAL STUDIO
-# =========================================================
-
-.vs/
-
+# Visual Studio
+/.vs/
 *.suo
 *.user
 *.userprefs
 *.opendb
 *.VC.db
 
-
-# =========================================================
-# GENERATED IDE PROJECT FILES
-# =========================================================
-
-ExportedObj/
-.consulo/
-
+# Generated IDE files
 *.csproj
 *.unityproj
 *.sln
@@ -76,102 +46,23 @@ ExportedObj/
 *.pdb
 *.mdb
 
-*.pidb.meta
-*.pdb.meta
-*.mdb.meta
-
-
-# =========================================================
-# BLENDER BACKUP FILES
-# =========================================================
-
-*.blend1
-*.blend1.meta
-
-
-# =========================================================
-# GRADLE / ANDROID
-# =========================================================
-
-.gradle/
-
+# Builds and exported packages
 *.apk
 *.aab
-
-
-# =========================================================
-# UNITY PACKAGES AND EXPORTED BUILDS
-# =========================================================
-
 *.unitypackage
-*.unitypackage.meta
 *.app
 
-
-# =========================================================
-# UNITY CRASH FILES
-# =========================================================
-
-sysinfo.txt
-mono_crash.*
-crashlytics-build.properties
-
-
-# =========================================================
-# UNITY TEST RUNNER
-# =========================================================
-
-InitTestScene*.unity*
-/[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
-
-
-# =========================================================
-# UNITY ADDRESSABLES - GENERATED FILES
-# =========================================================
-
-/ServerData/
-/[Aa]ssets/StreamingAssets/aa*
-/[Aa]ssets/AddressableAssetsData/link.xml*
-/[Aa]ssets/Addressables_Temp*
-/[Aa]ssets/AddressableAssetsData/*/*.bin*
-
-
-# =========================================================
-# UNITY VISUAL SCRIPTING - GENERATED FILES
-# =========================================================
-
-/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db
-/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
-
-/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
-/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
-
-
-# =========================================================
-# UNITY GENERATED CACHE INSIDE ASSETS
-# =========================================================
-
-/[Aa]ssets/[Ss]ceneDependencyCache*
-
-
-# =========================================================
-# WINDOWS / MACOS
-# =========================================================
-
+# Operating-system files
 .DS_Store
-.AppleDouble
-.LSOverride
-
 Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
 Desktop.ini
 
+# Crash and log files
+*.log
+sysinfo.txt
+mono_crash.*
 
-# =========================================================
-# LOCAL CONFIGURATION / SECRETS
-# =========================================================
-
+# Local configuration
 .env
 .env.*
 !.env.example
