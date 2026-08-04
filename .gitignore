@@ -1,5 +1,5 @@
 # =========================================================
-# UNITY GENERATED FILES
+# UNITY - GENERATED FOLDERS
 # =========================================================
 
 .utmp/
@@ -16,14 +16,6 @@
 /[Rr]ecordings/
 
 *.log
-
-
-# =========================================================
-# UNITY / BLENDER GENERATED FILES
-# =========================================================
-
-*.blend1
-*.blend1.meta
 
 
 # =========================================================
@@ -49,7 +41,7 @@
 
 
 # =========================================================
-# GENERATED PROJECT / SOLUTION FILES
+# GENERATED PROJECT FILES
 # =========================================================
 
 ExportedObj/
@@ -66,11 +58,17 @@ ExportedObj/
 *.pdb
 *.mdb
 
-
-# Generated Unity metadata for ignored/generated files
 *.pidb.meta
 *.pdb.meta
 *.mdb.meta
+
+
+# =========================================================
+# BLENDER BACKUP FILES
+# =========================================================
+
+*.blend1
+*.blend1.meta
 
 
 # =========================================================
@@ -84,17 +82,16 @@ ExportedObj/
 
 
 # =========================================================
-# BUILDS / EXPORTED PACKAGES
+# UNITY PACKAGES / BUILDS
 # =========================================================
 
 *.unitypackage
 *.unitypackage.meta
 *.app
-*.exe
 
 
 # =========================================================
-# CRASH REPORTS
+# UNITY CRASH FILES
 # =========================================================
 
 sysinfo.txt
@@ -111,7 +108,7 @@ InitTestScene*.unity*
 
 
 # =========================================================
-# UNITY ADDRESSABLES GENERATED FILES
+# UNITY ADDRESSABLES - GENERATED FILES
 # =========================================================
 
 /ServerData/
@@ -122,7 +119,44 @@ InitTestScene*.unity*
 
 
 # =========================================================
-# UNITY VISUAL SCRIPTING GENERATED FILES
+# UNITY VISUAL SCRIPTING - GENERATED FILES
 # =========================================================
 
-/[Aa]ssets/
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
+
+
+# =========================================================
+# UNITY GENERATED CACHE INSIDE ASSETS
+# =========================================================
+
+/[Aa]ssets/[Ss]ceneDependencyCache*
+
+
+# =========================================================
+# WINDOWS / MACOS
+# =========================================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+
+# =========================================================
+# SECRETS / LOCAL CONFIGURATION
+# =========================================================
+
+.env
+.env.*
+!.env.example
+
+*.key
+*.pem
+*.pfx
+*.p12
