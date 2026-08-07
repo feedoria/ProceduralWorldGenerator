@@ -415,6 +415,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomTerrain
   randomHeightRange: {x: 0, y: 0.1}
+  heightMapImage: {fileID: 2800000, guid: 8e5539eeb045735479066e01a7228fd9, type: 3}
+  heightMapScale: {x: 1, y: 0.5, z: 1}
   terrain: {fileID: 566635989}
   terrainData: {fileID: 15600000, guid: 4ec0f4b470208cd4c88be2d94353e3f9, type: 2}
 --- !u!154 &566635988
