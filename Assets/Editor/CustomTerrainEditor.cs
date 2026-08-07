@@ -5,14 +5,42 @@ using UnityEngine;
 [CanEditMultipleObjects]
 public class CustomTerrainEditor : Editor
 {
-    private void OnEnable() // that s gonna run every time i enable the terrain
+    //properties-------------------
+    private SerializedProperty randomHeightRange; // float in this case -> linking this with the other one in the other script
+    //fold outs--------------------
+    private bool showRandom = false; 
+    
+    // that s gonna run every time i enable the terrain
+    private void OnEnable()
     {
-        
+        // the linking code
+        randomHeightRange = serializedObject.FindProperty("randomHeightRange");  
+        // so when we change in the inspector now we know that the values are gonna remain there
     }
 
     public override void OnInspectorGUI() // this makes the this in inspector appear buttons sliders whatever
     {
+        // always at the beginning
+        serializedObject.Update(); // it updates all the serialized values between this script and the ser from customTerrain script
         
+        //changing the values
+        // we can access the randomHights field from customTerrain
+        CustomTerrain terrain = (CustomTerrain)target; // the thing is called the target is the script/class that is liked to 
+        // terrain is a link to the script not to the actual terrain itself
+        // I want to use serialized values so i csn change things from inspector 
+        // so I'm not gonna set the terrain.random.... directly
+        showRandom = EditorGUILayout.Foldout(showRandom, "Random"); // foldout is the arrow that hides the details 
+        if (showRandom)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Set Heights Between Random Values", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(randomHeightRange);
+            if (GUILayout.Button("Random Heights"))
+            {
+                terrain.RandomTerrain();
+            }
+        }
+        serializedObject.ApplyModifiedProperties();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

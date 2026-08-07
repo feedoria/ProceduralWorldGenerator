@@ -7,6 +7,12 @@ using System.Collections.Generic;
 [ExecuteInEditMode] 
 public class CustomTerrain : MonoBehaviour
 {
+    public Vector2 randomHeightRange = new Vector2(0, 0.1f); // the maximum and minimum hight
+    // 0.1f is a rlly large terrain height despite of how it appears on first look
+    public void RandomTerrain()
+    {
+        
+    }
     void Start()
     {
         SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
