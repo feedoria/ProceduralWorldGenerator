@@ -414,7 +414,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cd04f45fa3bea0489659d63360d826a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomTerrain
-  randomHightRange: {x: 0, y: 0.1}
+  randomHeightRange: {x: 0, y: 0.1}
+  terrain: {fileID: 566635989}
+  terrainData: {fileID: 15600000, guid: 4ec0f4b470208cd4c88be2d94353e3f9, type: 2}
 --- !u!154 &566635988
 TerrainCollider:
   m_ObjectHideFlags: 0
