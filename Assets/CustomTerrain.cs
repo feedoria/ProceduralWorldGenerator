@@ -8,21 +8,48 @@ using System.Collections.Generic;
 public class CustomTerrain : MonoBehaviour
 {
     public Vector2 randomHeightRange = new Vector2(0, 0.1f); // the maximum and minimum hight
-    // 0.1f is a rlly large terrain height despite of how it appears on first look
-    
     // THE heightMapImage IS GONNA HOLD MY IMG
     public Texture2D heightMapImage; 
     public Vector3 heightMapScale = new Vector3(1, 1, 1);
     
+    // PERLIN NOISE --------------------------
+    public float perlinXScale = 0.01f;
+    public float perlinYScale = 0.01f;
+    
     public Terrain terrain;
     public TerrainData terrainData;
+    
+    int hmr { get { return terrainData.heightmapResolution; } }
+
+    public void Perlin()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0, 
+                                                terrainData.heightmapResolution,
+                                                terrainData.heightmapResolution);
+        // it's 2d here that's why I work w/ x and y
+        for (int y = 0; y < terrainData.heightmapResolution; y++)
+        {
+            for (int x = 0; x < terrainData.heightmapResolution; x++)
+            {
+                // PerlinNoise requiers small values 
+                heightMap[y, x] = Mathf.PerlinNoise(x * perlinXScale, y * perlinYScale);
+            }
+        }
+        
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    float[,] GetHeights()
+    {
+        return terrainData.GetHeights(0, 0, hmr, hmr);
+    }
     public void RandomTerrain()
     {
-        float [,] heightMap = terrainData.GetHeights(0, 0, terrainData.heightmapResolution, terrainData.heightmapResolution);
+        float [,] heightMap = GetHeights();
         // getting the data out of the terrain and putting it into heightMap
-        for (int x = 0; x < terrainData.heightmapResolution; x++)
+        for (int x = 0; x < hmr; x++)
         {
-            for (int z = 0; z < terrainData.heightmapResolution; z++)
+            for (int z = 0; z < hmr; z++)
             {
                 // x = weight , z = depth 
                 heightMap[x, z] += UnityEngine.Random.Range(randomHeightRange.x, randomHeightRange.y);
@@ -36,11 +63,11 @@ public class CustomTerrain : MonoBehaviour
     public void LoadTextureAddHeights()
     {
         float[,] heightMap;
-        heightMap = terrainData.GetHeights(0, 0, terrainData.heightmapResolution, terrainData.heightmapResolution);
+        heightMap = GetHeights();
 
-        for (int x = 0; x < terrainData.heightmapResolution; x++)
+        for (int x = 0; x < hmr; x++)
         {
-            for (int z = 0; z < terrainData.heightmapResolution; z++)
+            for (int z = 0; z < hmr; z++)
             {
                 // the grayscale is returning a color value that I'm gettin at a certain pixel location
                 // and I'm using that color to influence the height at that position 
@@ -55,11 +82,11 @@ public class CustomTerrain : MonoBehaviour
     public void LoadTexture()
     {
         float[,] heightMap;
-        heightMap = new float[terrainData.heightmapResolution, terrainData.heightmapResolution]; 
+        heightMap = new float[hmr, hmr]; 
 
-        for (int x = 0; x < terrainData.heightmapResolution; x++)
+        for (int x = 0; x < hmr; x++)
         {
-            for (int z = 0; z < terrainData.heightmapResolution; z++)
+            for (int z = 0; z < hmr; z++)
             {
                 // the grayscale is returning a color value that I'm gettin at a certain pixel location
                 // and I'm using that color to influence the height at that position 
@@ -72,7 +99,7 @@ public class CustomTerrain : MonoBehaviour
 
     public void ResetTerrain()
     {
-        float [,] heightMap = new float[terrainData.heightmapResolution, terrainData.heightmapResolution];
+        float [,] heightMap = new float[hmr, hmr];
         terrainData.SetHeights(0, 0, heightMap);
     }
 

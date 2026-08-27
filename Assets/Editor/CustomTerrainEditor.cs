@@ -9,10 +9,13 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty randomHeightRange; // float in this case -> linking this with the other one in the other script
     private SerializedProperty heightMapScale;
     private SerializedProperty heightMapImage;
+    private SerializedProperty perlinXScale;
+    private SerializedProperty perlinYScale;
     
     //fold outs--------------------
     private bool showRandom = false; 
     private bool showLoadHeights = false;
+    private bool showPerlinNoiseHeights = false;
     
     // that s gonna run every time i enable the terrain
     private void OnEnable()
@@ -23,6 +26,9 @@ public class CustomTerrainEditor : Editor
         
         heightMapScale = serializedObject.FindProperty("heightMapScale");
         heightMapImage = serializedObject.FindProperty("heightMapImage");
+        
+        perlinXScale = serializedObject.FindProperty("perlinXScale");
+        perlinYScale = serializedObject.FindProperty("perlinYScale");
     }
 
     public override void OnInspectorGUI() // this makes the this in inspector appear buttons sliders whatever
@@ -57,6 +63,19 @@ public class CustomTerrainEditor : Editor
                 if (GUILayout.Button("Load Texture"))
                 {
                     terrain.LoadTexture();
+                }
+            }
+            
+            showPerlinNoiseHeights = EditorGUILayout.Foldout(showPerlinNoiseHeights, "Single Perlin Noise");
+            if (showPerlinNoiseHeights)
+            {
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                GUILayout.Label("Perlin Noise", EditorStyles.boldLabel);
+                EditorGUILayout.Slider(perlinXScale, 0, 1, new GUIContent("X Scale"));
+                EditorGUILayout.Slider(perlinYScale, 0, 1, new GUIContent("Y Scale"));
+                if (GUILayout.Button("Perlin Noise Heights"))
+                {
+                    terrain.Perlin();
                 }
             }
             
