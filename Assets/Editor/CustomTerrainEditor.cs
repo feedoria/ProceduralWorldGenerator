@@ -11,11 +11,21 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty heightMapImage;
     private SerializedProperty perlinXScale;
     private SerializedProperty perlinYScale;
+    private SerializedProperty perlinOffsetX;
+    private SerializedProperty perlinOffsetY;
+    private SerializedProperty perlinOctaves;
+    private SerializedProperty perlinPersistance;
+    private SerializedProperty perlinHeightScale;
+    private SerializedProperty resetTerrain;
+
+    private GUITableState perlinParametersTable;
+    private SerializedProperty perlinParameters;
     
     //fold outs--------------------
     private bool showRandom = false; 
     private bool showLoadHeights = false;
     private bool showPerlinNoiseHeights = false;
+    private bool showMultiplePerlin = false;
     
     // that s gonna run every time i enable the terrain
     private void OnEnable()
@@ -29,6 +39,18 @@ public class CustomTerrainEditor : Editor
         
         perlinXScale = serializedObject.FindProperty("perlinXScale");
         perlinYScale = serializedObject.FindProperty("perlinYScale");
+        
+        perlinOffsetX = serializedObject.FindProperty("perlinOffsetX");
+        perlinOffsetY = serializedObject.FindProperty("perlinOffsetY");
+        
+        perlinOctaves = serializedObject.FindProperty("perlinOctaves");
+        perlinPersistance = serializedObject.FindProperty("perlinPersistance");
+        perlinHeightScale = serializedObject.FindProperty("perlinHeightScale");
+        
+        resetTerrain = serializedObject.FindProperty("resetTerrain");
+        
+        perlinParametersTable = new GUITableState("perlinParametersTable");
+        perlinParameters = serializedObject.FindProperty("perlinParameters");
     }
 
     public override void OnInspectorGUI() // this makes the this in inspector appear buttons sliders whatever
@@ -38,10 +60,14 @@ public class CustomTerrainEditor : Editor
         
         //changing the values
         // we can access the randomHights field from customTerrain
-        CustomTerrain terrain = (CustomTerrain)target; // the thing is called the target is the script/class that is liked to 
+        CustomTerrain terrain = (CustomTerrain)target; 
+        // the thing is called the target is the script/class that is liked to 
         // terrain is a link to the script not to the actual terrain itself
         // I want to use serialized values so i csn change things from inspector 
         // so I'm not gonna set the terrain.random.... directly
+        
+        EditorGUILayout.PropertyField(resetTerrain);
+        
         showRandom = EditorGUILayout.Foldout(showRandom, "Random"); // foldout is the arrow that hides the details 
         if (showRandom)
         {
@@ -73,9 +99,43 @@ public class CustomTerrainEditor : Editor
                 GUILayout.Label("Perlin Noise", EditorStyles.boldLabel);
                 EditorGUILayout.Slider(perlinXScale, 0, 1, new GUIContent("X Scale"));
                 EditorGUILayout.Slider(perlinYScale, 0, 1, new GUIContent("Y Scale"));
+                EditorGUILayout.IntSlider(perlinOffsetX, 0, 10000, new GUIContent("X Offset"));
+                EditorGUILayout.IntSlider(perlinOffsetY, 0, 10000, new GUIContent("Y Offset"));
+                EditorGUILayout.IntSlider(perlinOctaves, 0, 10, new GUIContent("Octaves"));
+                EditorGUILayout.Slider(perlinPersistance, 0.1f, 10, new GUIContent("Persistance"));
+                EditorGUILayout.Slider(perlinHeightScale, 0, 1, new GUIContent("Height Scale"));
+                
                 if (GUILayout.Button("Perlin Noise Heights"))
                 {
                     terrain.Perlin();
+                }
+            }
+
+            showMultiplePerlin = EditorGUILayout.Foldout(showMultiplePerlin, "Multiple Perlin Noise");
+            if (showMultiplePerlin)
+            {
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                GUILayout.Label("Multiple Perlin Noise", EditorStyles.boldLabel);
+                perlinParametersTable = GUITableLayout.DrawTable(perlinParametersTable,
+                                                                serializedObject.FindProperty("perlinParameters"));
+                GUILayout.Space(20);
+                EditorGUILayout.BeginHorizontal();
+
+                if (GUILayout.Button("+"))
+                {
+                    terrain.AddNewPerlin();
+                }
+
+                if (GUILayout.Button("-"))
+                {
+                    terrain.RemovePerlin();
+                }
+                
+                EditorGUILayout.EndHorizontal();
+
+                if (GUILayout.Button("Add Multiple Perlin"))
+                {
+                    terrain.MultiplePerlinTerrain();
                 }
             }
             

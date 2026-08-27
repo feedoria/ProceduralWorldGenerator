@@ -12,31 +12,117 @@ public class CustomTerrain : MonoBehaviour
     public Texture2D heightMapImage; 
     public Vector3 heightMapScale = new Vector3(1, 1, 1);
     
+    public bool resetTerrain = true;
+    
     // PERLIN NOISE --------------------------
     public float perlinXScale = 0.01f;
     public float perlinYScale = 0.01f;
+    public int perlinOffsetX = 0;
+    public int perlinOffsetY = 0;
+    public int perlinOctaves = 3;
+    public float perlinPersistance = 8;
+    public float perlinHeightScale = 0.09f;
+    
+    // MULTIPLE PERLIN -----------------------
+    [System.Serializable]
+    public class PerlinParameters
+    {
+        public float mPerlinXScale = 0.01f;
+        public float mPerlinYScale = 0.01f;
+        public int mPerlinOctaves = 3;
+        public float mPerlinPersistance = 8;
+        public float mPerlinHeightScale = 0.09f;
+        public float mPerlinOffsetX = 0;
+        public float mPerlinOffsetY = 0;
+        public bool remove = false;
+    }
+
+    public List<PerlinParameters> perlinParameters = new List<PerlinParameters>()
+    {
+        new PerlinParameters() // if there's not at least 1 line then the gui table's gonna warn me 
+    };
     
     public Terrain terrain;
     public TerrainData terrainData;
     
     int hmr { get { return terrainData.heightmapResolution; } }
 
+    float[,] GetHeightMap()
+    {
+        if (!resetTerrain)
+        {
+            return terrainData.GetHeights(0, 0,
+                terrainData.heightmapResolution,
+                terrainData.heightmapResolution);
+        }
+        return new float[terrainData.heightmapResolution, terrainData.heightmapResolution];
+    }
+
     public void Perlin()
     {
-        float[,] heightMap = terrainData.GetHeights(0, 0, 
-                                                terrainData.heightmapResolution,
-                                                terrainData.heightmapResolution);
+        float[,] heightMap = GetHeightMap();
         // it's 2d here that's why I work w/ x and y
         for (int y = 0; y < terrainData.heightmapResolution; y++)
         {
             for (int x = 0; x < terrainData.heightmapResolution; x++)
             {
-                // PerlinNoise requiers small values 
-                heightMap[y, x] = Mathf.PerlinNoise(x * perlinXScale, y * perlinYScale);
+                // PerlinNoise requiers small values  -> first attempt (simple method)
+                /*heightMap[y, x] = Mathf.PerlinNoise((x + perlinOffsetX) * perlinXScale,
+                    (y + perlinOffsetY) * perlinYScale);*/
+                
+                heightMap[x, y] = Utils.fBM((x + perlinOffsetX) * perlinXScale,
+                                            (y + perlinOffsetY) * perlinYScale,
+                                            perlinOctaves,
+                                            perlinPersistance) * perlinHeightScale;
             }
         }
         
         terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    public void MultiplePerlinTerrain()
+    {
+        float[,] heightMap = GetHeightMap();
+
+        for (int y = 0; y < terrainData.heightmapResolution; y++)
+        {
+            for (int x = 0; x < terrainData.alphamapResolution; x++)
+            {
+                foreach (PerlinParameters perlinParameter in perlinParameters)
+                {
+                    heightMap[x, y] += Utils.fBM((x + perlinParameter.mPerlinOffsetX) * perlinParameter.mPerlinXScale,
+                                                (y + perlinParameter.mPerlinOffsetY) * perlinParameter.mPerlinYScale,
+                                                perlinParameter.mPerlinOctaves,
+                                                perlinParameter.mPerlinPersistance) *  perlinParameter.mPerlinHeightScale;
+                }
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    public void AddNewPerlin()
+    {
+        perlinParameters.Add(new PerlinParameters());
+    }
+
+    public void RemovePerlin()
+    {
+        List<PerlinParameters> keptPerlinParameters = new List<PerlinParameters>();
+
+        for (int i = 0; i < perlinParameters.Count; i++)
+        {
+            if (!perlinParameters[i].remove)
+            {
+                keptPerlinParameters.Add(perlinParameters[i]);
+            }
+        }
+
+        if (keptPerlinParameters.Count == 0)
+        {
+            keptPerlinParameters.Add(perlinParameters[0]);
+        }
+        
+        perlinParameters = keptPerlinParameters;
     }
 
     float[,] GetHeights()
@@ -45,7 +131,7 @@ public class CustomTerrain : MonoBehaviour
     }
     public void RandomTerrain()
     {
-        float [,] heightMap = GetHeights();
+        float [,] heightMap = GetHeightMap();
         // getting the data out of the terrain and putting it into heightMap
         for (int x = 0; x < hmr; x++)
         {
@@ -63,7 +149,7 @@ public class CustomTerrain : MonoBehaviour
     public void LoadTextureAddHeights()
     {
         float[,] heightMap;
-        heightMap = GetHeights();
+        heightMap = GetHeightMap();
 
         for (int x = 0; x < hmr; x++)
         {
@@ -78,11 +164,11 @@ public class CustomTerrain : MonoBehaviour
         terrainData.SetHeights(0, 0, heightMap);
     }
     
-    // if I want to apply the exact texture image 
+    // if I want to apply the exact texture image -> = not +=
     public void LoadTexture()
     {
         float[,] heightMap;
-        heightMap = new float[hmr, hmr]; 
+        heightMap = GetHeightMap();
 
         for (int x = 0; x < hmr; x++)
         {
@@ -90,7 +176,7 @@ public class CustomTerrain : MonoBehaviour
             {
                 // the grayscale is returning a color value that I'm gettin at a certain pixel location
                 // and I'm using that color to influence the height at that position 
-                heightMap[x, z] = heightMapImage.GetPixel((int)(x * heightMapScale.x), 
+                heightMap[x, z] += heightMapImage.GetPixel((int)(x * heightMapScale.x), 
                     (int)(z * heightMapScale.y)).grayscale * heightMapScale.y;
             }
         }
