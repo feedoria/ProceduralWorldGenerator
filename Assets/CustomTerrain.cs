@@ -102,6 +102,7 @@ public class CustomTerrain : MonoBehaviour
     
     public void RidgeNoise()
     {
+        ResetTerrain();
         MultiplePerlinTerrain();
         float[,] heightMap = GetHeightMap();
 
