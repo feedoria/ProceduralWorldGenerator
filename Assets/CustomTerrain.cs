@@ -99,6 +99,22 @@ public class CustomTerrain : MonoBehaviour
         }
         terrainData.SetHeights(0, 0, heightMap);
     }
+    
+    public void RidgeNoise()
+    {
+        MultiplePerlinTerrain();
+        float[,] heightMap = GetHeightMap();
+
+        for (int y = 0; y < terrainData.heightmapResolution; y++)
+        {
+            for (int x = 0; x < terrainData.alphamapResolution; x++)
+            {
+
+                heightMap[x, y] = 1 - Mathf.Abs(heightMap[x, y] - 0.5f);
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
 
     public void AddNewPerlin()
     {

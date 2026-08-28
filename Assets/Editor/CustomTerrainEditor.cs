@@ -137,6 +137,12 @@ public class CustomTerrainEditor : Editor
                 {
                     terrain.MultiplePerlinTerrain();
                 }
+                
+                GUILayout.Space(20);
+                if (GUILayout.Button("Apply Ridge Noise"))
+                {
+                    terrain.RidgeNoise();
+                }
             }
             
             GUILayout.Label("", EditorStyles.boldLabel);
