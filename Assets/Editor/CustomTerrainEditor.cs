@@ -26,6 +26,7 @@ public class CustomTerrainEditor : Editor
     private bool showLoadHeights = false;
     private bool showPerlinNoiseHeights = false;
     private bool showMultiplePerlin = false;
+    private bool showVoronoi = false;
     
     // that s gonna run every time i enable the terrain
     private void OnEnable()
@@ -78,8 +79,9 @@ public class CustomTerrainEditor : Editor
             {
                 terrain.RandomTerrain();
             }
-            
-            showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load Heights");
+        }
+
+        showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load Heights");
             if (showLoadHeights)
             {
                 EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
@@ -145,13 +147,23 @@ public class CustomTerrainEditor : Editor
                 }
             }
             
+            showVoronoi = EditorGUILayout.Foldout(showVoronoi, "Voronoi");
+            if (showVoronoi)
+            {
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                if (GUILayout.Button("Voronoi"))
+                {
+                    terrain.Voronoi();
+                }
+                
+            }
+            
             GUILayout.Label("", EditorStyles.boldLabel);
             GUILayout.Label("Reset Heights", EditorStyles.boldLabel);
             if (GUILayout.Button("Reset Heights"))
             {
                 terrain.ResetTerrain();
             }
-        }
         serializedObject.ApplyModifiedProperties();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

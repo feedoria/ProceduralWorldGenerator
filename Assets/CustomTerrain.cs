@@ -42,6 +42,19 @@ public class CustomTerrain : MonoBehaviour
         new PerlinParameters() // if there's not at least 1 line then the gui table's gonna warn me 
     };
     
+    // VORONOI TESELATION -------------------
+
+    public void Voronoi()
+    {
+        float[,] heightMap = GetHeightMap();
+        Vector3 peak = new Vector3(UnityEngine.Random.Range(0, terrainData.heightmapResolution),
+                                    UnityEngine.Random.Range(0.01f, 1.0f),
+                                    UnityEngine.Random.Range(0, terrainData.heightmapResolution)
+                                    );
+        heightMap[(int)peak.x, (int)peak.z] = peak.y;
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+    
     public Terrain terrain;
     public TerrainData terrainData;
     
