@@ -43,33 +43,60 @@ public class CustomTerrain : MonoBehaviour
     };
     
     // VORONOI TESELATION -------------------
-
+    public float voronoiFallOff = 0.2f;
+    public float voronoiDropOff = 0.6f;
+    public float voronoiMinHeight = 0.1f;
+    public float voronoiMaxHeight = 0.5f;
+    public int voronoiPeaks = 5;
+    public enum VoronoiType { Linear = 0, Power = 1, Combined = 2, Sin = 3}
+    public VoronoiType voronoiType = VoronoiType.Linear;
     public void Voronoi()
     {
         float[,] heightMap = GetHeightMap();
-        float fallOff = 2.5f;
-        Vector3 peak = new Vector3(256, 0.2f, 256);
-            /*new Vector3(UnityEngine.Random.Range(0, terrainData.heightmapResolution),
-                                    UnityEngine.Random.Range(0.01f, 1.0f),
-                                    UnityEngine.Random.Range(0, terrainData.heightmapResolution)
-                                    );*/
-        heightMap[(int)peak.x, (int)peak.z] = peak.y;
-        
-        Vector2 peakLocation = new Vector2(peak.x, peak.z);
-        float maxDistance = Vector2.Distance(new Vector2(0,0), new Vector2(terrainData.heightmapResolution,terrainData.heightmapResolution));
 
-        for (int y = 0; y < terrainData.heightmapResolution; y++)
+        for (int p = 0; p < voronoiPeaks; p++)
         {
-            for (int x = 0; x < terrainData.heightmapResolution; x++)
+
+            Vector3 peak = new Vector3(UnityEngine.Random.Range(0, terrainData.heightmapResolution),
+                                    UnityEngine.Random.Range(voronoiMinHeight, voronoiMaxHeight),
+                                    UnityEngine.Random.Range(0, terrainData.heightmapResolution)
+                                    );
+            
+            if (heightMap[(int)peak.x, (int)peak.z] < peak.y)
+                heightMap[(int)peak.x, (int)peak.z] = peak.y;
+            else
             {
-                if (!(x == peak.x && y == peak.z))
+                continue;
+            }
+
+            Vector2 peakLocation = new Vector2(peak.x, peak.z);
+            float maxDistance = Vector2.Distance(new Vector2(0, 0),
+                new Vector2(terrainData.heightmapResolution, terrainData.heightmapResolution));
+
+            for (int y = 0; y < terrainData.heightmapResolution; y++)
+            {
+                for (int x = 0; x < terrainData.heightmapResolution; x++)
                 {
-                    float distanceToPeak = Vector2.Distance(peakLocation, new Vector2(x, y)) * fallOff;
-                    heightMap[x, y] = peak.y - (distanceToPeak /  maxDistance);
+                    if (!(x == peak.x && y == peak.z))
+                    {
+                        float distanceToPeak = Vector2.Distance(peakLocation, new Vector2(x, y)) / maxDistance;
+                        float h;
+                        if (voronoiType == VoronoiType.Combined)
+                            h = peak.y - distanceToPeak * voronoiFallOff - Mathf.Pow(distanceToPeak, voronoiDropOff);
+                        else if (voronoiType == VoronoiType.Sin) 
+                            h = peak.y - Mathf.Sin(distanceToPeak * 100.0f) * 0.1f; // sin
+                        else if (voronoiType == VoronoiType.Power)
+                            h = peak.y - Mathf.Pow(distanceToPeak, voronoiDropOff) * voronoiFallOff; //power
+                        else 
+                            h = peak.y - distanceToPeak * voronoiFallOff; //linear
+                        
+                        if (heightMap[x, y] < h)                       
+                            heightMap[x, y] = h;
+                    }
                 }
             }
         }
-        
+
         terrainData.SetHeights(0, 0, heightMap);
     }
     
