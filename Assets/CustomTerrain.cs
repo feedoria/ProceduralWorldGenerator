@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
+
 [ExecuteInEditMode] 
 public class CustomTerrain : MonoBehaviour
 {
@@ -48,7 +50,15 @@ public class CustomTerrain : MonoBehaviour
     public float voronoiMinHeight = 0.1f;
     public float voronoiMaxHeight = 0.5f;
     public int voronoiPeaks = 5;
-    public enum VoronoiType { Linear = 0, Power = 1, Combined = 2, Sin = 3}
+    public enum VoronoiType 
+    { 
+        Linear, 
+        Power, 
+        Combined, 
+        Sin, 
+        SinPow,
+        Perlin
+    }
     public VoronoiType voronoiType = VoronoiType.Linear;
     public void Voronoi()
     {
@@ -87,8 +97,19 @@ public class CustomTerrain : MonoBehaviour
                             h = peak.y - Mathf.Sin(distanceToPeak * 100.0f) * 0.1f; // sin
                         else if (voronoiType == VoronoiType.Power)
                             h = peak.y - Mathf.Pow(distanceToPeak, voronoiDropOff) * voronoiFallOff; //power
-                        else 
+                        else if (voronoiType == VoronoiType.Linear)
                             h = peak.y - distanceToPeak * voronoiFallOff; //linear
+                        else if (VoronoiType.Perlin == voronoiType)
+                        {
+                            h = (peak.y - distanceToPeak * voronoiFallOff) +
+                                Utils.fBM((x + perlinOffsetX) * perlinXScale,
+                                    (y + perlinOffsetY) * perlinYScale,
+                                    perlinOctaves,
+                                    perlinPersistance) * perlinHeightScale; //Perlin
+                        }
+                        else 
+                            h = peak.y - Mathf.Pow(distanceToPeak * 3, voronoiFallOff) -
+                                Mathf.Sin(distanceToPeak * 2 * Mathf.PI) / voronoiDropOff; //sinpow
                         
                         if (heightMap[x, y] < h)                       
                             heightMap[x, y] = h;
@@ -144,7 +165,7 @@ public class CustomTerrain : MonoBehaviour
 
         for (int y = 0; y < terrainData.heightmapResolution; y++)
         {
-            for (int x = 0; x < terrainData.alphamapResolution; x++)
+            for (int x = 0; x < terrainData.heightmapResolution; x++)
             {
                 foreach (PerlinParameters perlinParameter in perlinParameters)
                 {
@@ -166,7 +187,7 @@ public class CustomTerrain : MonoBehaviour
 
         for (int y = 0; y < terrainData.heightmapResolution; y++)
         {
-            for (int x = 0; x < terrainData.alphamapResolution; x++)
+            for (int x = 0; x < terrainData.heightmapResolution; x++)
             {
 
                 heightMap[x, y] = 1 - Mathf.Abs(heightMap[x, y] - 0.5f);

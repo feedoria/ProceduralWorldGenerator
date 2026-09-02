@@ -166,7 +166,7 @@ public class CustomTerrainEditor : Editor
                 EditorGUILayout.IntSlider(voronoiPeaks, 1, 10, new GUIContent("Peak Count"));
                 EditorGUILayout.Slider(voronoiFallOff, 0, 10, new GUIContent("Fall Off"));
                 EditorGUILayout.Slider(voronoiDropOff, 0, 10, new GUIContent("Drop Off"));
-                EditorGUILayout.IntSlider(voronoiMinHeight, 0, 1, new GUIContent("Min Height"));
+                EditorGUILayout.Slider(voronoiMinHeight, 0, 1, new GUIContent("Min Height"));
                 EditorGUILayout.Slider(voronoiMaxHeight, 0, 1, new GUIContent("Max Height"));
                 EditorGUILayout.PropertyField(voronoiType);
                 EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
