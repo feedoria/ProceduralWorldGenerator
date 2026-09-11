@@ -77,6 +77,8 @@ public class CustomTerrain : MonoBehaviour
                                                  heightMap[cornerX, cornerY]) / 4.0f);
             }
         }
+        
+        terrainData.SetHeights(0, 0, heightMap);                          
     }
     
     // VORONOI TESELATION -------------------
