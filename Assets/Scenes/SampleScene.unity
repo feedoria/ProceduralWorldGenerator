@@ -442,10 +442,10 @@ MonoBehaviour:
     mPerlinOffsetX: 0
     mPerlinOffsetY: 0
     remove: 0
-  voronoiFallOff: 10
-  voronoiDropOff: 10
-  voronoiMinHeight: 0.034
-  voronoiMaxHeight: 0.28
+  voronoiFallOff: 7.3
+  voronoiDropOff: 0.7
+  voronoiMinHeight: 0.2
+  voronoiMaxHeight: 0.15
   voronoiPeaks: 7
   voronoiType: 5
   terrain: {fileID: 566635989}

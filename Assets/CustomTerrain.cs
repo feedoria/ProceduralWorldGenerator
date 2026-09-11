@@ -43,6 +43,41 @@ public class CustomTerrain : MonoBehaviour
     {
         new PerlinParameters() // if there's not at least 1 line then the gui table's gonna warn me 
     };
+    // Midpoint Displacement -> The Diamond Step
+    
+    // taking squares out of the mesh and making them smaller and smaller 
+    public void MidPointDisplacement()
+    {
+        float[,] heightMap = GetHeightMap();
+        int width = terrainData.heightmapResolution - 1;
+        int squareSize = width;
+        
+        int cornerX, cornerY;
+        int midX, midY;
+        int pmidXL, pmidYR, pmidYU, pmidYD;
+        
+        heightMap[0, 0] = UnityEngine.Random.Range(0f, 1f);
+        heightMap[0, terrainData.heightmapResolution - 1] = UnityEngine.Random.Range(0f, 0.2f);
+        heightMap[terrainData.heightmapResolution - 1, 0] = UnityEngine.Random.Range(0f, 0.2f);
+        heightMap[terrainData.heightmapResolution - 1, terrainData.heightmapResolution - 1] = UnityEngine.Random.Range(0f, 0.2f);
+
+        for (int x = 0; x < width; x += squareSize)
+        {
+            for (int y = 0; y < terrainData.heightmapResolution; y += squareSize)
+            {
+                cornerX = x + squareSize;
+                cornerY = y + squareSize;
+                
+                midX = (int)(x + squareSize / 2.0f);
+                midY = (int)(y + squareSize / 2.0f);
+                
+                heightMap[midX, midY] = (float)((heightMap[x, y] +
+                                                 heightMap[cornerX, y] +
+                                                 heightMap[x, cornerY] +
+                                                 heightMap[cornerX, cornerY]) / 4.0f);
+            }
+        }
+    }
     
     // VORONOI TESELATION -------------------
     public float voronoiFallOff = 0.2f;
