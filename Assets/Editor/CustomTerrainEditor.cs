@@ -26,6 +26,11 @@ public class CustomTerrainEditor : Editor
 
     private GUITableState perlinParametersTable;
     private SerializedProperty perlinParameters;
+
+    private SerializedProperty MPDheightMin;
+    private SerializedProperty MPDheightMax;
+    private SerializedProperty MPDheightDampenerPower;
+    private SerializedProperty MPDroughness;
     
     //fold outs--------------------
     private bool showRandom = false; 
@@ -33,6 +38,7 @@ public class CustomTerrainEditor : Editor
     private bool showPerlinNoiseHeights = false;
     private bool showMultiplePerlin = false;
     private bool showVoronoi = false;
+    private bool showMidpointDisplacement = false;
     
     // that s gonna run every time i enable the terrain
     private void OnEnable()
@@ -65,6 +71,11 @@ public class CustomTerrainEditor : Editor
         voronoiMaxHeight = serializedObject.FindProperty("voronoiMaxHeight");
         voronoiPeaks = serializedObject.FindProperty("voronoiPeaks");
         voronoiType = serializedObject.FindProperty("voronoiType");
+        
+        MPDheightMin = serializedObject.FindProperty("MPDheightMin");
+        MPDheightMax = serializedObject.FindProperty("MPDheightMax");
+        MPDheightDampenerPower = serializedObject.FindProperty("MPDheightDampenerPower");
+        MPDroughness = serializedObject.FindProperty("MPDroughness");
     }
 
     public override void OnInspectorGUI() // this makes the this in inspector appear buttons sliders whatever
@@ -175,6 +186,19 @@ public class CustomTerrainEditor : Editor
                     terrain.Voronoi();
                 }
                 
+            }
+            
+            showMidpointDisplacement = EditorGUILayout.Foldout(showMidpointDisplacement, "Midpoint Displacement");
+            if (showMidpointDisplacement)
+            {
+                EditorGUILayout.PropertyField(MPDheightMin);
+                EditorGUILayout.PropertyField(MPDheightMax);
+                EditorGUILayout.PropertyField(MPDheightDampenerPower);
+                EditorGUILayout.PropertyField(MPDroughness);
+                if (GUILayout.Button("MPD"))
+                {
+                    terrain.MidPointDisplacement();
+                }
             }
             
             GUILayout.Label("", EditorStyles.boldLabel);
