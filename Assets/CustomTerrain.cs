@@ -43,6 +43,129 @@ public class CustomTerrain : MonoBehaviour
     {
         new PerlinParameters() // if there's not at least 1 line then the gui table's gonna warn me 
     };
+    
+    // Smooth Algorithm
+    public int smoothAmount = 2;
+    List<Vector2> GenerateNeighbours(Vector2 pos, int width, int height)
+    {
+        List<Vector2> neighbours = new List<Vector2>();
+        for (int y = -1; y < 2; y++)
+        {
+            for (int x = -1; x < 2; x++)
+            {
+                if (!(x == 0 && y == 0)) // check if i havent picked the current position -> it would be its own neighbour
+                {
+                    Vector2 nPos = new Vector2(Mathf.Clamp(pos.x + x, 0, width - 1), 
+                        Mathf.Clamp(pos.y + y, 0, height - 1));
+
+                    if (!neighbours.Contains(nPos))
+                    {
+                        neighbours.Add(nPos);
+                    }
+                }
+            }
+        }
+        return neighbours;
+    }
+    
+    public void Smooth()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0, terrainData.heightmapResolution, terrainData.heightmapResolution);
+        float smoothProgress = 0;
+        EditorUtility.DisplayProgressBar("Smoothing terrain", "Progress", smoothProgress);
+        for (int s = 0; s < smoothAmount; s++)
+        {
+            for (int y = 0; y < terrainData.heightmapResolution; y++)
+            {
+                for (int x = 0; x < terrainData.heightmapResolution; x++)
+                {
+                    // find every single pixel and getting the average of the neighbours including current pixel
+                    float avgHeight = heightMap[x, y];
+                    List<Vector2> neighbours = GenerateNeighbours(new Vector2(x,y), 
+                        terrainData.heightmapResolution,
+                        terrainData.heightmapResolution);
+
+                    foreach (Vector2 neighbour in neighbours)
+                    {
+                        avgHeight += heightMap[(int)neighbour.x, (int)neighbour.y];
+                    }
+
+                
+                    heightMap[x, y] = avgHeight / ((float)neighbours.Count + 1);
+                }
+            }
+            smoothProgress++;
+            EditorUtility.DisplayProgressBar("Smoothing terrain", "Progress", smoothProgress/smoothAmount);
+        }
+        
+        terrainData.SetHeights(0, 0, heightMap);
+        EditorUtility.ClearProgressBar();
+    }
+    
+    /*public void Smooth()
+    {
+        float[,] heightMap = GetHeightMap();
+        for (int y = 0; y < terrainData.heightmapResolution; y++)
+        {
+            for (int x = 0; x < terrainData.heightmapResolution; x++)
+            {
+                // find every single pixel and getting the average of the neighbours including current pixel
+                float avgHeight = 0;
+
+                if (y == 0 && x > 0 && x < width - 1)
+                {
+                    avgHeight = (heightMap[x, y] + 
+                                heightMap[x + 1, y] +
+                                heightMap[x, y + 1] +
+                                heightMap[x + 1, y + 1] +
+                                heightMap[x - 1, y + 1] +
+                                heightMap[x - 1, y]) / 6.0f;;
+                }
+                else if (x == 0 && y > 0 && y < height - 1)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                 heightMap[x + 1, y] +
+                                 heightMap[x + 1, y + 1] +
+                                 heightMap[x + 1, y - 1] +
+                                 heightMap[x, y + 1] +
+                                 heightMap[x, y - 1]) / 6.0f;
+                }
+                else if (x == width - 1 && y > height - 1 && y < 0)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                 heightMap[x + 1, y] +
+                                 heightMap[x - 1, y] +
+                                 heightMap[x + 1, y - 1] +
+                                 heightMap[x - 1, y - 1] +
+                                 heightMap[x, y - 1]) / 6.0f;
+                }
+                else if (x == width - 1 && y > height - 1 && y < 0)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                 heightMap[x - 1, y] +
+                                 heightMap[x - 1, y + 1] +
+                                 heightMap[x - 1, y - 1] +
+                                 heightMap[x, y - 1] +
+                                 heightMap[x, y + 1]) / 6.0f;
+                }
+                else if (y > 0 && x > 0 && y < height - 1 && x < width - 1)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                 heightMap[x + 1, y] +
+                                 heightMap[x - 1, y] +
+                                 heightMap[x + 1, y + 1] +
+                                 heightMap[x - 1, y - 1] +
+                                 heightMap[x + 1, y - 1] +
+                                 heightMap[x - 1, y + 1] +
+                                 heightMap[x, y + 1] +
+                                 heightMap[x, y - 1]) / 9.0f;
+                }
+                heightMap[x, y] = avgHeight;
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }*/
+    
     // Midpoint Displacement -> The Diamond Step
     public float MPDheightMin = -2f;
     public float MPDheightMax = 2f;

@@ -31,6 +31,8 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty MPDheightMax;
     private SerializedProperty MPDheightDampenerPower;
     private SerializedProperty MPDroughness;
+
+    private SerializedProperty smoothAmount;
     
     //fold outs--------------------
     private bool showRandom = false; 
@@ -39,6 +41,7 @@ public class CustomTerrainEditor : Editor
     private bool showMultiplePerlin = false;
     private bool showVoronoi = false;
     private bool showMidpointDisplacement = false;
+    private bool showSmooth = false;
     
     // that s gonna run every time i enable the terrain
     private void OnEnable()
@@ -76,6 +79,8 @@ public class CustomTerrainEditor : Editor
         MPDheightMax = serializedObject.FindProperty("MPDheightMax");
         MPDheightDampenerPower = serializedObject.FindProperty("MPDheightDampenerPower");
         MPDroughness = serializedObject.FindProperty("MPDroughness");
+        
+        smoothAmount = serializedObject.FindProperty("smoothAmount");
     }
 
     public override void OnInspectorGUI() // this makes the this in inspector appear buttons sliders whatever
@@ -198,6 +203,16 @@ public class CustomTerrainEditor : Editor
                 if (GUILayout.Button("MPD"))
                 {
                     terrain.MidPointDisplacement();
+                }
+            }
+            
+            showSmooth = EditorGUILayout.Foldout(showSmooth, "Smooth Terrain");
+            if (showSmooth)
+            {
+                EditorGUILayout.IntSlider(smoothAmount, 0, 10, new GUIContent("Smooth Amount"));
+                if (GUILayout.Button("Smooth"))
+                {
+                    terrain.Smooth();
                 }
             }
             
