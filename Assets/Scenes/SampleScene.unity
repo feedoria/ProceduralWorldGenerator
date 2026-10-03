@@ -415,7 +415,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomTerrain
   randomHeightRange: {x: 0, y: 0.1}
-  heightMapImage: {fileID: 2800000, guid: 8e5539eeb045735479066e01a7228fd9, type: 3}
+  heightMapImage: {fileID: 2800000, guid: 96647ebd86c0d4045ba1f0e484e85d6e, type: 3}
   heightMapScale: {x: 1, y: 0.5, z: 1}
   resetTerrain: 0
   perlinXScale: 0.001
@@ -442,17 +442,71 @@ MonoBehaviour:
     mPerlinOffsetX: 0
     mPerlinOffsetY: 0
     remove: 0
-  smoothAmount: 8
-  MPDheightMin: -2
-  MPDheightMax: 2
-  MPDheightDampenerPower: 2
-  MPDroughness: 2
+  splatHeights:
+  - texture: {fileID: 2800000, guid: dd49ed99f55924d13bacefd240626bc5, type: 3}
+    minHeight: 0.1
+    maxHeight: 11.1
+    minSlope: 0
+    maxSlope: 6
+    tileOffset: {x: 0, y: 0}
+    tileSize: {x: 30, y: 30}
+    splatOffset: 0.1
+    splatNoiseXScale: 14.2
+    splatNoiseYScale: 0.01
+    splatNoiseScaler: 0.1
+    remove: 0
+  - texture: {fileID: 2800000, guid: c0afc0990a99342a9bd0b7b59053e908, type: 3}
+    minHeight: 0.1
+    maxHeight: 176.3
+    minSlope: 45
+    maxSlope: 291.2
+    tileOffset: {x: 0, y: 0}
+    tileSize: {x: 50, y: 50}
+    splatOffset: 0.1
+    splatNoiseXScale: 4.73
+    splatNoiseYScale: 0.01
+    splatNoiseScaler: 0.1
+    remove: 0
+  - texture: {fileID: 2800000, guid: 60724ca4e99f54f7a9c399ee0739c087, type: 3}
+    minHeight: 0.1
+    maxHeight: 92.7
+    minSlope: 1.5
+    maxSlope: 151.7
+    tileOffset: {x: 0, y: 0}
+    tileSize: {x: 50, y: 50}
+    splatOffset: 0.1
+    splatNoiseXScale: 6.1
+    splatNoiseYScale: 0.01
+    splatNoiseScaler: 0.1
+    remove: 0
+  vegetation:
+  - mesh: {fileID: 0}
+    minHeight: 0.1
+    maxHeight: 0.2
+    minSlope: 0
+    maxSlope: 90
+    minScale: 0.5
+    maxScale: 1
+    colour1: {r: 1, g: 1, b: 1, a: 1}
+    colour2: {r: 1, g: 1, b: 1, a: 1}
+    lightColour: {r: 1, g: 1, b: 1, a: 1}
+    minRotation: 0
+    maxRotation: 360
+    density: 0.5
+    remove: 0
+  maxTrees: 5000
+  treeSpacing: 5
   voronoiFallOff: 7.3
   voronoiDropOff: 0.7
   voronoiMinHeight: 0.2
   voronoiMaxHeight: 0.15
   voronoiPeaks: 7
   voronoiType: 5
+  MPDheightMin: -2
+  MPDheightMax: 2
+  MPDheightDampenerPower: 2
+  MPDroughness: 2
+  smoothAmount: 8
   terrain: {fileID: 566635989}
   terrainData: {fileID: 15600000, guid: 4ec0f4b470208cd4c88be2d94353e3f9, type: 2}
 --- !u!154 &566635988
