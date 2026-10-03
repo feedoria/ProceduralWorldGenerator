@@ -15,7 +15,7 @@ public static class Utils
         {
             total += Mathf.PerlinNoise(x * frequency, y * frequency) * amplitude;
             maxValue += amplitude;
-            amplitude *= persistance; // the persistance value is gonna get smaller and smaller 
+            amplitude *= persistance; // the persistance value is gonna get smaller and smaller   
             frequency *= 2; // 2 is hardcoded must experiment a bit 
         }
         
