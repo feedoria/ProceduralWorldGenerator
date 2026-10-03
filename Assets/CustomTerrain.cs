@@ -13,8 +13,66 @@ public class CustomTerrain : MonoBehaviour
     // THE heightMapImage IS GONNA HOLD MY IMG
     public Texture2D heightMapImage; 
     public Vector3 heightMapScale = new Vector3(1, 1, 1);
-    
     public bool resetTerrain = true;
+    
+    // Splatmaps
+    [System.Serializable]
+    public class SplatHeights
+    {
+        public Texture2D texture;
+        public float minHeight = 0.1f;
+        public float maxHeight = 0.2f;
+        public bool remove = false;
+    }
+    
+    public List<SplatHeights> splatHeights = new List<SplatHeights>()
+    {
+        new SplatHeights()
+    };
+
+    public void SplatMaps()
+    {
+        TerrainLayer[] newSplatPrototypes = new TerrainLayer[splatHeights.Count];
+        int spIndex = 0;
+
+        foreach (SplatHeights splat in splatHeights)
+        {
+            newSplatPrototypes[spIndex] = new TerrainLayer();
+            newSplatPrototypes[spIndex].diffuseTexture = splat.texture;
+            newSplatPrototypes[spIndex].diffuseTexture.Apply(true);
+            string path = "Assets/New TerrainLayer " + spIndex + ".terrainLayer";
+            AssetDatabase.CreateAsset(newSplatPrototypes[spIndex], path);
+            spIndex++;
+            Selection.activeObject = this.gameObject;
+        }
+        
+        terrainData.terrainLayers = newSplatPrototypes;
+    }
+
+    public void AddNewSplatHeight()
+    {
+        splatHeights.Add(new SplatHeights()); // new row
+    }
+
+    public void RemoveSplatHeights()
+    {
+        List<SplatHeights> keepSplatHeights = new List<SplatHeights>();
+
+        for (int i = 0; i < splatHeights.Count; i++)
+        {
+            if (!splatHeights[i].remove)
+            {
+                keepSplatHeights.Add(splatHeights[i]);
+            }
+        }
+
+        if (keepSplatHeights.Count == 0)
+        {
+            keepSplatHeights.Add(splatHeights[0]);
+        }
+        
+        splatHeights = keepSplatHeights;
+    }
     
     // PERLIN NOISE --------------------------
     public float perlinXScale = 0.01f;

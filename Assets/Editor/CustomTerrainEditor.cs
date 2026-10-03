@@ -33,6 +33,9 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty MPDroughness;
 
     private SerializedProperty smoothAmount;
+
+    private GUITableState splatMapTable;
+    private SerializedProperty splatHeights;
     
     //fold outs--------------------
     private bool showRandom = false; 
@@ -42,6 +45,7 @@ public class CustomTerrainEditor : Editor
     private bool showVoronoi = false;
     private bool showMidpointDisplacement = false;
     private bool showSmooth = false;
+    private bool showSplatMaps = false;
     
     // that s gonna run every time i enable the terrain
     private void OnEnable()
@@ -81,6 +85,7 @@ public class CustomTerrainEditor : Editor
         MPDroughness = serializedObject.FindProperty("MPDroughness");
         
         smoothAmount = serializedObject.FindProperty("smoothAmount");
+        
     }
 
     public override void OnInspectorGUI() // this makes the this in inspector appear buttons sliders whatever
@@ -214,6 +219,34 @@ public class CustomTerrainEditor : Editor
                 {
                     terrain.Smooth();
                 }
+            }
+            
+            showSplatMaps = EditorGUILayout.Foldout(showSplatMaps, "Splat Maps");
+            if (showSplatMaps)
+            {
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                GUILayout.Label("Splat Maps", EditorStyles.boldLabel);
+                splatMapTable = GUITableLayout.DrawTable(splatMapTable, serializedObject.FindProperty("splatHeights"));
+                GUILayout.Space(20);
+                EditorGUILayout.BeginHorizontal();
+                
+                if (GUILayout.Button("+"))
+                {
+                    terrain.AddNewSplatHeight();
+                }
+
+                if (GUILayout.Button("-"))
+                {
+                    terrain.RemoveSplatHeights();
+                }
+                
+                EditorGUILayout.EndHorizontal();
+
+                if (GUILayout.Button("Apply SplatMaps"))
+                {
+                    terrain.SplatMaps();
+                }    
+                
             }
             
             GUILayout.Label("", EditorStyles.boldLabel);
