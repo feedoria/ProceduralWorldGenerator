@@ -395,7 +395,7 @@ GameObject:
   - component: {fileID: 566635989}
   - component: {fileID: 566635988}
   - component: {fileID: 566635987}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Terrain
   m_TagString: Terrain
   m_Icon: {fileID: 0}
@@ -480,9 +480,23 @@ MonoBehaviour:
     splatNoiseScaler: 0.1
     remove: 0
   vegetation:
-  - mesh: {fileID: 0}
+  - mesh: {fileID: -927199367670048503, guid: 8c7d35afbd119bca11002b7b44295342, type: 3}
     minHeight: 0.1
-    maxHeight: 0.2
+    maxHeight: 1
+    minSlope: 0
+    maxSlope: 35
+    minScale: 0.5
+    maxScale: 1
+    colour1: {r: 0.90943396, g: 0.5054702, b: 0.25223923, a: 1}
+    colour2: {r: 0.29744074, g: 0.5471698, b: 0.25087216, a: 1}
+    lightColour: {r: 0.4863081, g: 0.7433963, b: 0.31839803, a: 1}
+    minRotation: 0
+    maxRotation: 360
+    density: 0.5
+    remove: 0
+  - mesh: {fileID: -927199367670048503, guid: 10337ad1bd11abca11002b7b44295342, type: 3}
+    minHeight: 0.1
+    maxHeight: 0.7
     minSlope: 0
     maxSlope: 90
     minScale: 0.5
@@ -494,8 +508,8 @@ MonoBehaviour:
     maxRotation: 360
     density: 0.5
     remove: 0
-  maxTrees: 5000
-  treeSpacing: 5
+  maxTrees: 10000
+  treeSpacing: 10
   voronoiFallOff: 7.3
   voronoiDropOff: 0.7
   voronoiMinHeight: 0.2
