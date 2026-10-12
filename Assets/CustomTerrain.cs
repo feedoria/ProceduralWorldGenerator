@@ -94,13 +94,42 @@ public class CustomTerrain : MonoBehaviour {
     public int maxTrees = 5000;
     public int treeSpacing = 5;
 
+    // DETAILS -------------------------------
+    [System.Serializable]
+    public class Detail
+    {
+        public GameObject prototype = null;
+        public Texture2D prototypeTexture = null;
+        public float minHeight = 0.1f;
+        public float maxHeight = 0.2f;
+        public float minSlope = 0;
+        public float maxSlope = 1;
+        public Color dryColour = Color.white;
+        public Color healthyColour = Color.white;
+        public Vector2 heightRange = new Vector2(1, 1);
+        public Vector2 widthRange = new Vector2(1, 1);
+        public float noiseSpread = 0.5f;
+        public float overlap = 0.01f;
+        public float feather = 0.05f;
+        public float density = 0.5f;
+        public bool remove = false;
+    }
+
+    public List<Detail> details = new List<Detail>()
+    {
+        new Detail()
+    };
+
+    public int maxDetails = 5000;
+    public int detailSpacing = 5;
+
     // VORONOI TESELATION -------------------
     public float voronoiFallOff = 0.2f;
     public float voronoiDropOff = 0.6f;
     public float voronoiMinHeight = 0.1f;
     public float voronoiMaxHeight = 0.5f;
     public int voronoiPeaks = 5;
-    // primele 4 = ale profei (aceleasi valori), Sin si Perlin = ale mele, adaugate la final
+    // added Sin and Perlin at the end so the other values stay the same
     public enum VoronoiType { Linear = 0, Power = 1, SinPow = 2, Combined = 3, Sin = 4, Perlin = 5 }
     public VoronoiType voronoiType = VoronoiType.Linear;
 
@@ -117,7 +146,7 @@ public class CustomTerrain : MonoBehaviour {
     public Terrain terrain;
     public TerrainData terrainData;
 
-    // heightmapResolution inlocuieste heightmapWidth / heightmapHeight (scoase din Unity-ul nou)
+    // heightmapWidth and heightmapHeight dont exist anymore in the new unity
     int hmr { get { return terrainData.heightmapResolution; } }
 
     public void PlantVegetation()
@@ -133,7 +162,7 @@ public class CustomTerrain : MonoBehaviour {
         }
         terrainData.treePrototypes = newTreePrototypes;
 
-        // daca Awake n-a rulat inca (ex. dupa recompilare), iau layer-ul dupa nume
+        // in case Awake didnt run yet i take the layer by its name
         if (terrainLayer == -1) terrainLayer = LayerMask.NameToLayer("Terrain");
 
         List<TreeInstance> allVegetation = new List<TreeInstance>();
@@ -145,8 +174,7 @@ public class CustomTerrain : MonoBehaviour {
                 {
                     if (UnityEngine.Random.Range(0.0f, 1.0f) > vegetation[tp].density) continue;
 
-                    // x si z sunt in metri, nu in pixeli de heightmap -> GetInterpolatedHeight cu coordonate 0-1
-                    // (GetHeight(x, z) din codul profei asteapta indici de heightmap)
+                    // x and z are in meters not heightmap pixels so i use GetInterpolatedHeight (0-1 coords)
                     float worldHeight = terrainData.GetInterpolatedHeight(x / (float)terrainData.size.x,
                                                                           z / (float)terrainData.size.z);
                     float thisHeight = worldHeight / terrainData.size.y;
@@ -203,6 +231,96 @@ public class CustomTerrain : MonoBehaviour {
     TREESDONE:
         terrainData.treeInstances = allVegetation.ToArray();
 
+    }
+
+    public void AddDetails()
+    {
+        DetailPrototype[] newDetailPrototypes;
+        newDetailPrototypes = new DetailPrototype[details.Count];
+        int dindex = 0;
+        float[,] heightMap = terrainData.GetHeights(0, 0, hmr, hmr);
+
+        foreach (Detail d in details)
+        {
+            newDetailPrototypes[dindex] = new DetailPrototype();
+            newDetailPrototypes[dindex].prototype = d.prototype;
+            newDetailPrototypes[dindex].prototypeTexture = d.prototypeTexture;
+            newDetailPrototypes[dindex].healthyColor = d.healthyColour;
+            newDetailPrototypes[dindex].dryColor = d.dryColour;
+            newDetailPrototypes[dindex].minHeight = d.heightRange.x;
+            newDetailPrototypes[dindex].maxHeight = d.heightRange.y;
+            newDetailPrototypes[dindex].minWidth = d.widthRange.x;
+            newDetailPrototypes[dindex].maxWidth = d.widthRange.y;
+            newDetailPrototypes[dindex].noiseSpread = d.noiseSpread;
+
+            if (newDetailPrototypes[dindex].prototype)
+            {
+                newDetailPrototypes[dindex].usePrototypeMesh = true;
+                newDetailPrototypes[dindex].renderMode = DetailRenderMode.VertexLit;
+            }
+            else
+            {
+                newDetailPrototypes[dindex].usePrototypeMesh = false;
+                newDetailPrototypes[dindex].renderMode = DetailRenderMode.GrassBillboard;
+            }
+            dindex++;
+        }
+        terrainData.detailPrototypes = newDetailPrototypes;
+
+        for (int i = 0; i < terrainData.detailPrototypes.Length; i++)
+        {
+            int[,] detailMap = new int[terrainData.detailWidth, terrainData.detailHeight];
+            for (int y = 0; y < terrainData.detailHeight; y += detailSpacing)
+            {
+                for (int x = 0; x < terrainData.detailWidth; x += detailSpacing)
+                {
+                    if (UnityEngine.Random.Range(0.0f, 1.0f) > details[i].density) continue;
+
+                    int xHM = (int)(x / (float)terrainData.detailWidth * hmr);
+                    int yHM = (int)(y / (float)terrainData.detailHeight * hmr);
+
+                    float thisNoise = Utils.Map(Mathf.PerlinNoise(x * details[i].feather,
+                                                y * details[i].feather), 0, 1, 0.5f, 1);
+                    float thisHeightStart = details[i].minHeight * thisNoise -
+                                            details[i].overlap * thisNoise;
+                    float nextHeightStart = details[i].maxHeight * thisNoise +
+                                            details[i].overlap * thisNoise;
+
+                    float thisHeight = heightMap[yHM, xHM];
+                    // GetSteepness wants 0-1 coords
+                    float steepness = terrainData.GetSteepness(x / (float)terrainData.detailWidth,
+                                                               y / (float)terrainData.detailHeight);
+                    if ((thisHeight >= thisHeightStart && thisHeight <= nextHeightStart) &&
+                        (steepness >= details[i].minSlope && steepness <= details[i].maxSlope))
+                    {
+                        detailMap[y, x] = 1;
+                    }
+                }
+            }
+            terrainData.SetDetailLayer(0, 0, i, detailMap);
+        }
+    }
+
+    public void AddNewDetails()
+    {
+        details.Add(new Detail());
+    }
+
+    public void RemoveDetails()
+    {
+        List<Detail> keptDetails = new List<Detail>();
+        for (int i = 0; i < details.Count; i++)
+        {
+            if (!details[i].remove)
+            {
+                keptDetails.Add(details[i]);
+            }
+        }
+        if (keptDetails.Count == 0) //don't want to keep any
+        {
+            keptDetails.Add(details[0]); //add at least 1
+        }
+        details = keptDetails;
     }
 
     public void AddNewVegetation()
@@ -272,7 +390,7 @@ public class CustomTerrain : MonoBehaviour {
 
     public void SplatMaps()
     {
-        // SplatPrototype nu mai exista in Unity-ul nou -> TerrainLayer (varianta mea)
+        // SplatPrototype doesnt exist anymore -> TerrainLayer
         TerrainLayer[] newSplatPrototypes = new TerrainLayer[splatHeights.Count];
         int spindex = 0;
         foreach (SplatHeights sh in splatHeights)
@@ -336,7 +454,7 @@ public class CustomTerrain : MonoBehaviour {
             total += v[i];
         }
 
-        if (total == 0) return; // niciun layer nu se potriveste -> evit impartirea la 0 (NaN)
+        if (total == 0) return; // if no layer fits i dont divide by 0
 
         for (int i = 0; i < v.Length; i++)
         {
@@ -376,7 +494,7 @@ public class CustomTerrain : MonoBehaviour {
 
     public void Smooth()
     {
-        // varianta mea: iau mereu terenul existent (cu GetHeightMap() + resetTerrain bifat ar netezi un teren plat)
+        // taking the actual terrain so it doesnt smooth a flat one when resetTerrain is on
         float[,] heightMap = terrainData.GetHeights(0, 0, hmr, hmr);
         float smoothProgress = 0;
         EditorUtility.DisplayProgressBar("Smoothing Terrain",
@@ -695,7 +813,7 @@ public class CustomTerrain : MonoBehaviour {
     {
         ResetTerrain();
         MultiplePerlinTerrain();
-        // citesc direct din teren: GetHeightMap() cu resetTerrain bifat ar da doar zerouri
+        // taking the heights straight from the terrain otherwise i get only zeros
         float[,] heightMap = terrainData.GetHeights(0, 0, hmr, hmr);
 
         for (int y = 0; y < hmr; y++)
@@ -748,7 +866,7 @@ public class CustomTerrain : MonoBehaviour {
 
     // if the terrain is modified by hand or has other modifications then the texture img should be applied over 
     // the last version of the terrain
-    // if I want to apply the exact texture image -> bifez resetTerrain (GetHeightMap da harta goala)
+    // if I want to apply the exact texture image -> tick resetTerrain
     public void LoadTexture()
     {
         float[,] heightMap = GetHeightMap();
@@ -810,7 +928,7 @@ public class CustomTerrain : MonoBehaviour {
 
         //take this object
         this.gameObject.tag = "Terrain";
-        if (terrainLayer != -1) // -1 = nu s-a gasit loc liber pentru layer -> Unity ar da eroare
+        if (terrainLayer != -1) // -1 means there was no free slot for the layer
             this.gameObject.layer = terrainLayer;
     }
 

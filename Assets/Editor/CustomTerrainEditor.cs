@@ -48,6 +48,11 @@ public class CustomTerrainEditor : Editor
     SerializedProperty maxTrees;
     SerializedProperty treeSpacing;
 
+    GUITableState detailMapTable;
+    SerializedProperty detail;
+    SerializedProperty maxDetails;
+    SerializedProperty detailSpacing;
+
 
     //fold outs ------------
     bool showRandom = false;
@@ -60,6 +65,7 @@ public class CustomTerrainEditor : Editor
     bool showSplatMaps = false;
     bool showVeg = false;
     bool showHeights = false;
+    bool showDetail = false;
 
     Texture2D hmTexture;
 
@@ -104,6 +110,11 @@ public class CustomTerrainEditor : Editor
         treeSpacing = serializedObject.FindProperty("treeSpacing");
 
         hmTexture = new Texture2D(513, 513, TextureFormat.ARGB32, false);
+
+        detailMapTable = new GUITableState("detailMapTable");
+        detail = serializedObject.FindProperty("details");
+        maxDetails = serializedObject.FindProperty("maxDetails");
+        detailSpacing = serializedObject.FindProperty("detailSpacing");
     }
     Vector2 scrollPos;
     public override void OnInspectorGUI() // this makes the this in inspector appear buttons sliders whatever
@@ -194,7 +205,6 @@ public class CustomTerrainEditor : Editor
                 terrain.MultiplePerlinTerrain();
             }
 
-            // de la mine
             GUILayout.Space(20);
             if (GUILayout.Button("Apply Ridge Noise"))
             {
@@ -285,6 +295,35 @@ public class CustomTerrainEditor : Editor
         }
 
 
+        showDetail = EditorGUILayout.Foldout(showDetail, "Details");
+        if (showDetail)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Detail", EditorStyles.boldLabel);
+            EditorGUILayout.IntSlider(maxDetails, 0, 10000, new GUIContent("Maximum Details"));
+            EditorGUILayout.IntSlider(detailSpacing, 1, 20, new GUIContent("Detail Spacing"));
+            detailMapTable = GUITableLayout.DrawTable(detailMapTable,
+                                        serializedObject.FindProperty("details"));
+
+            terrain.GetComponent<Terrain>().detailObjectDistance = maxDetails.intValue;
+
+            GUILayout.Space(20);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+"))
+            {
+                terrain.AddNewDetails();
+            }
+            if (GUILayout.Button("-"))
+            {
+                terrain.RemoveDetails();
+            }
+            EditorGUILayout.EndHorizontal();
+            if (GUILayout.Button("Apply Details"))
+            {
+                terrain.AddDetails();
+            }
+        }
+
         showSmooth = EditorGUILayout.Foldout(showSmooth, "Smooth Terrain");
         if(showSmooth)
         {
@@ -316,11 +355,11 @@ public class CustomTerrainEditor : Editor
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Refresh", GUILayout.Width(hmtSize)))
             {
-                // heightmapResolution in loc de heightmapWidth / heightmapHeight (Unity nou)
+                // heightmapResolution instead of heightmapWidth / heightmapHeight
                 int res = terrain.terrainData.heightmapResolution;
                 float[,] heightMap = terrain.terrainData.GetHeights(0, 0, res, res);
 
-                // textura are aceeasi marime ca heightmap-ul (daca schimb rezolutia terenului)
+                // making the texture the same size as the heightmap
                 if (hmTexture.width != res)
                     hmTexture = new Texture2D(res, res, TextureFormat.ARGB32, false);
 
