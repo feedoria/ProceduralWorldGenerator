@@ -70,4 +70,5 @@ mono_crash.*
 *.key
 *.pem
 *.pfx
-*.p12
+*.p12/Assets/Packages/
+/Assets/Packages.meta
