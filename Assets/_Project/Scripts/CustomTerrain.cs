@@ -147,12 +147,319 @@ public class CustomTerrain : MonoBehaviour {
     public GameObject waterGO;
     public Material shoreLineMaterial;
 
+    // EROSION ------------------------------------------------
+    public enum ErosionType { Rain = 0, Thermal = 1, Tidal = 2,
+                                River = 3, Wind = 4, Canyon = 5 }
+    public ErosionType erosionType = ErosionType.Rain;
+    public float erosionStrength = 0.1f;
+    public float erosionAmount = 0.01f;
+    public int springsPerRiver = 5;
+    public float solubility = 0.01f;
+    public int droplets = 10;
+    public int erosionSmoothAmount = 5;
+
 
     public Terrain terrain;
     public TerrainData terrainData;
 
     // heightmapWidth and heightmapHeight dont exist anymore in the new unity
     int hmr { get { return terrainData.heightmapResolution; } }
+
+    public void Erode()
+    {
+        if (erosionType == ErosionType.Rain)
+            Rain();
+        else if (erosionType == ErosionType.Tidal)
+            Tidal();
+        else if (erosionType == ErosionType.Thermal)
+            Thermal();
+        else if (erosionType == ErosionType.River)
+            River();
+        else if (erosionType == ErosionType.Wind)
+            Wind();
+        else if (erosionType == ErosionType.Canyon)
+            DigCanyon();
+
+        smoothAmount = erosionSmoothAmount;
+        Smooth();
+
+    }
+
+    float[,] tempHeightMap;
+    public void DigCanyon()
+    {
+        float digDepth = erosionStrength;
+        float bankSlope = erosionAmount;
+        float maxDepth = 0;
+        tempHeightMap = terrainData.GetHeights(0, 0, hmr,
+                                                hmr);
+        int cx = 1;
+        int cy = UnityEngine.Random.Range(10, hmr - 10);
+        while (cy >= 0 && cy < hmr && cx > 0
+               && cx < hmr)
+        {
+            CanyonCrawler(cx, cy, tempHeightMap[cx, cy] - digDepth, bankSlope, maxDepth);
+            cx = cx + UnityEngine.Random.Range(-1, 4);
+            cy = cy + UnityEngine.Random.Range(-2, 3);
+        }
+        terrainData.SetHeights(0, 0, tempHeightMap);
+    }
+
+    void CanyonCrawler(int x, int y, float height, float slope, float maxDepth)
+    {
+        if (x < 0 || x >= hmr) return; //off x range of map
+        if (y < 0 || y >= hmr) return; //off y range of map
+        if (height <= maxDepth) return; //if hit lowest level
+        if (tempHeightMap[x, y] <= height) return; //if run into lower elevation
+
+        tempHeightMap[x, y] = height;
+
+        CanyonCrawler(x + 1, y, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x - 1, y, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x + 1, y + 1, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x - 1, y + 1, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x, y - 1, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+        CanyonCrawler(x, y + 1, height + UnityEngine.Random.Range(slope, slope + 0.01f), slope, maxDepth);
+    }
+
+    void Rain()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0,
+                                                    hmr,
+                                                    hmr);
+        for (int i = 0; i < droplets; i++)
+        {
+            heightMap[UnityEngine.Random.Range(0, hmr),
+                      UnityEngine.Random.Range(0, hmr)]
+                        -= erosionStrength;
+        }
+
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    void Thermal()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0,
+                            hmr,
+                            hmr);
+        for (int y = 0; y < hmr; y++)
+        {
+            for (int x = 0; x < hmr; x++)
+            {
+                Vector2 thisLocation = new Vector2(x, y);
+                List<Vector2> neighbours = GenerateNeighbours(thisLocation,
+                                                              hmr,
+                                                              hmr);
+                foreach (Vector2 n in neighbours)
+                {
+                    if (heightMap[x, y] > heightMap[(int)n.x, (int)n.y] + erosionStrength)
+                    {
+                        float currentHeight = heightMap[x, y];
+                        heightMap[x, y] -= currentHeight * erosionAmount;
+                        heightMap[(int)n.x, (int)n.y] += currentHeight * erosionAmount;
+                    }
+                }
+            }
+        }
+
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    void Tidal()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0,
+                                    hmr,
+                                    hmr);
+        for (int y = 0; y < hmr; y++)
+        {
+            for (int x = 0; x < hmr; x++)
+            {
+                Vector2 thisLocation = new Vector2(x, y);
+                List<Vector2> neighbours = GenerateNeighbours(thisLocation,
+                                                              hmr,
+                                                              hmr);
+                foreach (Vector2 n in neighbours)
+                {
+                    if (heightMap[x, y] < waterHeight && heightMap[(int)n.x, (int)n.y] > waterHeight)
+                    {
+                        heightMap[x, y] = waterHeight;
+                        heightMap[(int)n.x, (int)n.y] = waterHeight;
+                    }
+                }
+            }
+        }
+
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+
+    void River()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0,
+                                            hmr,
+                                            hmr);
+        float[,] erosionMap = new float[hmr, hmr];
+
+        for (int i = 0; i < droplets; i++)
+        {
+            Vector2 dropletPosition = new Vector2(UnityEngine.Random.Range(0, hmr),
+                                                  UnityEngine.Random.Range(0, hmr));
+            erosionMap[(int)dropletPosition.x, (int)dropletPosition.y] = erosionStrength;
+            for (int j = 0; j < springsPerRiver; j++)
+            {
+                erosionMap = RunRiver(dropletPosition, heightMap, erosionMap,
+                                   hmr,
+                                   hmr);
+            }
+        }
+
+        for (int y = 0; y < hmr; y++)
+        {
+            for (int x = 0; x < hmr; x++)
+            {
+                if (erosionMap[x, y] > 0)
+                {
+                    heightMap[x, y] -= erosionMap[x, y];
+                }
+            }
+        }
+
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    void SmoothTerrain()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0,
+                                            hmr,
+                                            hmr);
+        int width = hmr;
+        int height = hmr;
+
+        for (int y = 0; y < hmr; y++)
+        {
+            for (int x = 0; x < hmr; x++)
+            {
+                float avgHeight = 0;
+
+                if (y == 0 && x > 0 && x < width - 1)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                    heightMap[x + 1, y] +
+                                    heightMap[x - 1, y] +
+                                    heightMap[x + 1, y + 1] +
+                                    heightMap[x - 1, y + 1] +
+                                    heightMap[x, y + 1]) / 6.0f;
+                }
+                else if (x == 0 && y > 0 && y < height - 1)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                    heightMap[x + 1, y] +
+                                    heightMap[x + 1, y + 1] +
+                                    heightMap[x + 1, y - 1] +
+                                    heightMap[x, y + 1] +
+                                    heightMap[x, y - 1]) / 6.0f;
+                }
+                else if (y == height - 1 && x > width - 1 && x < 0)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                    heightMap[x + 1, y] +
+                                    heightMap[x - 1, y] +
+                                    heightMap[x + 1, y - 1] +
+                                    heightMap[x - 1, y - 1] +
+                                    heightMap[x, y - 1]) / 6.0f;
+                }
+                else if (x == width - 1 && y > height - 1 && y < 0)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                    heightMap[x - 1, y] +
+                                    heightMap[x - 1, y + 1] +
+                                    heightMap[x - 1, y - 1] +
+                                    heightMap[x, y + 1] +
+                                    heightMap[x, y - 1]) / 6.0f;
+                }
+                else if (y > 0 && x > 0 && y < height - 1 && x < width - 1)
+                {
+                    avgHeight = (heightMap[x, y] +
+                                    heightMap[x + 1, y] +
+                                    heightMap[x - 1, y] +
+                                    heightMap[x + 1, y + 1] +
+                                    heightMap[x - 1, y - 1] +
+                                    heightMap[x + 1, y - 1] +
+                                    heightMap[x - 1, y + 1] +
+                                    heightMap[x, y + 1] +
+                                    heightMap[x, y - 1]) / 9.0f;
+                }
+
+                heightMap[x, y] = avgHeight;
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    float[,] RunRiver(Vector2 dropletPosition, float[,] heightMap, float[,] erosionMap, int width, int height)
+    {
+        while (erosionMap[(int)dropletPosition.x, (int)dropletPosition.y] > 0)
+        {
+            List<Vector2> neighbours = GenerateNeighbours(dropletPosition, width, height);
+            neighbours.Shuffle();
+            bool foundLower = false;
+            foreach (Vector2 n in neighbours)
+            {
+                if (heightMap[(int)n.x, (int)n.y] < heightMap[(int)dropletPosition.x, (int)dropletPosition.y])
+                {
+                    erosionMap[(int)n.x, (int)n.y] = erosionMap[(int)dropletPosition.x, 
+                                                                (int)dropletPosition.y] - solubility;
+                    dropletPosition = n;
+                    foundLower = true;
+                    break;
+                }
+            }
+            if (!foundLower)
+            {
+                erosionMap[(int)dropletPosition.x, (int)dropletPosition.y] -= solubility;
+            }
+        }
+        return erosionMap;
+    }
+
+    void Wind()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0,
+                                            hmr,
+                                            hmr);
+        int width = hmr;
+        int height = hmr;
+
+        float WindDir = 30;
+        float sinAngle = -Mathf.Sin(Mathf.Deg2Rad * WindDir);
+        float cosAngle = Mathf.Cos(Mathf.Deg2Rad * WindDir);
+
+        for (int y = -(height - 1)*2; y <= height*2; y += 10)
+        {
+            for (int x = -(width - 1)*2; x <= width*2; x += 1)
+            {
+                float thisNoise = (float)Mathf.PerlinNoise(x * 0.06f, y * 0.06f) * 20 * erosionStrength;
+                int nx = (int)x;
+                int digy = (int)y + (int)thisNoise;
+                int ny = (int)y + 5 + (int)thisNoise;
+
+                Vector2 digCoords = new Vector2(x * cosAngle - digy * sinAngle, digy * cosAngle + x * sinAngle);
+                Vector2 pileCoords = new Vector2(nx * cosAngle - ny * sinAngle, ny * cosAngle + nx * sinAngle);
+
+                if (!(pileCoords.x < 0 || pileCoords.x > (width - 1) || pileCoords.y < 0 || 
+                      pileCoords.y > (height - 1) ||
+                     (int)digCoords.x < 0 || (int)digCoords.x > (width - 1) ||
+                     (int)digCoords.y < 0 || (int)digCoords.y > (height - 1)))
+                {
+                    heightMap[(int)digCoords.x, (int)digCoords.y] -= 0.001f;
+                    heightMap[(int)pileCoords.x, (int)pileCoords.y] += 0.001f;
+                }
+
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
 
     public void AddWater()
     {

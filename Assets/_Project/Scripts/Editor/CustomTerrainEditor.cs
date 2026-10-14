@@ -57,6 +57,14 @@ public class CustomTerrainEditor : Editor
     SerializedProperty waterGO;
     SerializedProperty shoreLineMaterial;
 
+    SerializedProperty erosionType;
+    SerializedProperty erosionStrength;
+    SerializedProperty erosionAmount;
+    SerializedProperty springsPerRiver;
+    SerializedProperty solubility;
+    SerializedProperty droplets;
+    SerializedProperty erosionSmoothAmount;
+
 
     //fold outs ------------
     bool showRandom = false;
@@ -71,6 +79,7 @@ public class CustomTerrainEditor : Editor
     bool showHeights = false;
     bool showDetail = false;
     bool showWater = false;
+    bool showErosion = false;
 
     Texture2D hmTexture;
 
@@ -124,6 +133,14 @@ public class CustomTerrainEditor : Editor
         waterHeight = serializedObject.FindProperty("waterHeight");
         waterGO = serializedObject.FindProperty("waterGO");
         shoreLineMaterial = serializedObject.FindProperty("shoreLineMaterial");
+
+        erosionType = serializedObject.FindProperty("erosionType");
+        erosionStrength = serializedObject.FindProperty("erosionStrength");
+        erosionAmount = serializedObject.FindProperty("erosionAmount");
+        springsPerRiver = serializedObject.FindProperty("springsPerRiver");
+        solubility = serializedObject.FindProperty("solubility");
+        droplets = serializedObject.FindProperty("droplets");
+        erosionSmoothAmount = serializedObject.FindProperty("erosionSmoothAmount");
     }
     Vector2 scrollPos;
     public override void OnInspectorGUI() // this makes the this in inspector appear buttons sliders whatever
@@ -350,6 +367,23 @@ public class CustomTerrainEditor : Editor
             if (GUILayout.Button("Add Shoreline"))
             {
                 terrain.DrawShoreline();
+            }
+        }
+
+        showErosion = EditorGUILayout.Foldout(showErosion, "Erosion");
+        if (showErosion)
+        {
+            EditorGUILayout.PropertyField(erosionType);
+            EditorGUILayout.Slider(erosionStrength, 0, 1, new GUIContent("Erosion Strength"));
+            EditorGUILayout.Slider(erosionAmount, 0, 1, new GUIContent("Erosion Amount"));
+            EditorGUILayout.IntSlider(droplets, 0, 500, new GUIContent("Droplets"));
+            EditorGUILayout.Slider(solubility, 0.001f, 1, new GUIContent("Solubility"));
+            EditorGUILayout.IntSlider(springsPerRiver, 0, 20, new GUIContent("Springs Per River"));
+            EditorGUILayout.IntSlider(erosionSmoothAmount, 0, 10, new GUIContent("Smooth Amount"));
+
+            if (GUILayout.Button("Erode"))
+            {
+                terrain.Erode();
             }
         }
 

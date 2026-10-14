@@ -553,10 +553,17 @@ MonoBehaviour:
   MPDheightMax: 2
   MPDheightDampenerPower: 2
   MPDroughness: 2
-  smoothAmount: 8
+  smoothAmount: 5
   waterHeight: 0.03
   waterGO: {fileID: 9039902028270093340, guid: 73b3e74cda79b47489a6e45f92e2b3bb, type: 3}
   shoreLineMaterial: {fileID: 2100000, guid: 688aa98bd8fa92d47a9488699cd403af, type: 2}
+  erosionType: 0
+  erosionStrength: 0.211
+  erosionAmount: 0.384
+  springsPerRiver: 8
+  solubility: 0.055
+  droplets: 73
+  erosionSmoothAmount: 5
   terrain: {fileID: 566635989}
   terrainData: {fileID: 15600000, guid: 4ec0f4b470208cd4c88be2d94353e3f9, type: 2}
 --- !u!154 &566635988
