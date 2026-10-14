@@ -73,3 +73,7 @@ mono_crash.*
 *.p12
 /Assets/Packages/
 /Assets/Packages.meta
+/Assets/NatureManufacture Assets/
+/Assets/NatureManufacture Assets.meta
+/Assets/_TerrainAutoUpgrade/
+/Assets/_TerrainAutoUpgrade.meta
