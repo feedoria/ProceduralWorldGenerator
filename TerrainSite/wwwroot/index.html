@@ -1,137 +1,161 @@
 <!doctype html>
 <html lang="ro">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Procedural World Generator</title>
-    <style>
-        :root { --bg:#f4f2ee; --card:#fff; --text:#1d1d1b; --muted:#6b6a65; --accent:#3b6d11; --border:#ddd9d0; }
-        * { box-sizing: border-box; }
-        body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
-        main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
-        h1 { font-size: 22px; font-weight: 600; margin: 0 0 16px; }
-        .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px; }
-        .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        input { font:inherit; padding:8px 10px; border:1px solid var(--border); border-radius:8px; width:160px; }
-        button { font:inherit; padding:8px 14px; border-radius:8px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
-        button.ghost { background:transparent; color:var(--accent); }
-        button:disabled { opacity:.5; cursor:default; }
-        #status { color:var(--muted); margin-left:8px; }
-        .images { display:grid; grid-template-columns: 1fr 1.6fr; gap:12px; }
-        .images img { width:100%; border-radius:8px; border:1px solid var(--border); background:#e9e6df; }
-        table { border-collapse: collapse; width:100%; }
-        td { padding:6px 4px; border-bottom:1px solid var(--border); }
-        td:last-child { text-align:right; font-variant-numeric: tabular-nums; }
-        #history li { cursor:pointer; padding:4px 0; color:var(--muted); }
-        #history li:hover { color:var(--text); }
-        @media (max-width: 700px) { .images { grid-template-columns: 1fr; } }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generator de teren</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; max-width: 1200px; background: #fafafa; color: #222; }
+    .controls { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+    label { display: flex; flex-direction: column; font-size: 13px; gap: 4px; }
+    select, input, button { font-size: 15px; padding: 6px 10px; }
+    #presetDesc { color: #666; font-size: 14px; }
+    #status { font-weight: 600; }
+    .imgs { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+    .imgs img { max-width: 100%; height: 360px; object-fit: contain; background: #ddd; }
+    table { border-collapse: collapse; }
+    th, td { text-align: left; padding: 4px 12px 4px 0; border-bottom: 1px solid #e5e5e5; font-size: 14px; vertical-align: top; }
+    th { font-weight: 500; color: #555; }
+    #history li { cursor: pointer; padding: 2px 0; }
+    #history li:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
-<main>
-    <h1>Procedural World Generator</h1>
+<h1>Generator de teren</h1>
 
-    <div class="card row">
-        <input id="seed" type="number" placeholder="seed (gol = aleator)">
-        <button id="go">Generează</button>
-        <button id="random" class="ghost">Seed aleator</button>
-        <span id="status"></span>
-    </div>
+<div class="controls">
+  <label>Tip de teren <select id="preset"></select></label>
+  <label>Seed <input id="seed" type="number" min="1" placeholder="aleator"></label>
+  <button id="go">Generează</button>
+  <button id="rnd">Seed aleator</button>
+</div>
+<p id="presetDesc"></p>
 
-    <div class="card" id="result" hidden>
-        <div class="images">
-            <img id="top" alt="vedere de sus">
-            <img id="oblique" alt="vedere oblică">
-        </div>
-    </div>
+<p id="status"></p>
+<div class="imgs" id="imgs" hidden>
+  <img id="top" alt="vedere de sus">
+  <img id="oblique" alt="vedere oblică">
+</div>
+<table id="metrics"></table>
 
-    <div class="card" id="metricsCard" hidden>
-        <table id="metrics"></table>
-    </div>
-
-    <div class="card">
-        <strong>Istoric</strong>
-        <ul id="history"></ul>
-    </div>
-</main>
+<h2>Istoric</h2>
+<ul id="history"></ul>
 
 <script>
-    // only the ids of the elements i need
-    const $ = id => document.getElementById(id);
-    let timer = null;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const num = (v, d = 1) => v == null ? '–' : Number(v).toFixed(d);
+  const pct = v => v == null ? '–' : (v * 100).toFixed(1) + '%';
+  const stateRo = { Queued: 'în coadă', Running: 'rulează', Done: 'gata', Failed: 'eșuat', Rejected: 'respins' };
 
-    async function generate(seed) {
-        $('go').disabled = true;
-        const res = await fetch('/api/runs', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ seed })
-        });
-        const { id } = await res.json();
-        watch(id);
+  let presets = [];
+  let pollTimer = null;
+
+  async function getJson(url, opts) {
+    const res = await fetch(url, opts);
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  async function loadPresets() {
+    presets = await getJson('/api/presets');
+    $('preset').innerHTML = presets.map(p => `<option value="${esc(p.name)}">${esc(p.label || p.name)}</option>`).join('');
+    if (presets.some(p => p.name === 'deal')) $('preset').value = 'deal';
+    showPresetDesc();
+  }
+
+  function showPresetDesc() {
+    const p = presets.find(p => p.name === $('preset').value);
+    $('presetDesc').textContent = p?.description ?? '';
+  }
+
+  async function generate() {
+    const seed = $('seed').value ? Number($('seed').value) : null;
+    try {
+      const run = await getJson('/api/runs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preset: $('preset').value, seed })
+      });
+      show(run);
+      poll(run.id);
+      loadHistory();
+    } catch (e) {
+      $('status').textContent = 'Eroare: ' + e.message;
     }
+  }
 
-    // asking the server every half second until the run is finished
-    function watch(id) {
-        clearInterval(timer);
-        timer = setInterval(() => refresh(id), 500);
-        refresh(id);
+  function poll(id) {
+    clearInterval(pollTimer);
+    pollTimer = setInterval(async () => {
+      const run = await getJson('/api/runs/' + id);
+      show(run);
+      if (run.state !== 'Queued' && run.state !== 'Running') {
+        clearInterval(pollTimer);
+        loadHistory();
+      }
+    }, 500);
+  }
+
+  function show(run) {
+    let s = `#${run.id} · ${run.preset} · seed ${run.seed}`;
+    if (run.seed !== run.requestedSeed) s += ` (cerut ${run.requestedSeed})`;
+    s += ` · ${stateRo[run.state] ?? run.state}`;
+    if (run.attempts > 1) s += ` · încercarea ${run.attempts}`;
+    if (run.message) s += ` · ${run.message}`;
+    $('status').textContent = s;
+
+    $('imgs').hidden = !run.images;
+    if (run.images) {
+      if ($('top').getAttribute('src') !== run.images.top) $('top').src = run.images.top;
+      if ($('oblique').getAttribute('src') !== run.images.oblique) $('oblique').src = run.images.oblique;
     }
+    renderMetrics(run.metrics);
+  }
 
-    async function refresh(id) {
-        const run = await (await fetch('/api/runs/' + id)).json();
-        show(run);
-        if (['Done', 'Failed', 'Rejected'].includes(run.state)) {
-            clearInterval(timer);
-            $('go').disabled = false;
-            loadHistory();
-        }
-    }
+  function renderMetrics(m) {
+    if (!m) { $('metrics').innerHTML = ''; return; }
+    const relief = m.reliefM || 1;
+    const meters = v => num(v * relief) + ' m';
+    const bands = ['0–5°', '5–15°', '15–30°', '30–45°', '45°+']
+      .map((b, i) => `${b}: ${pct(m.slopeBands?.[i])}`).join(' · ');
+    const targets = !m.targetsChecked ? 'neverificate'
+      : (m.targetFails?.length ? m.targetFails.join('; ') : 'în interval');
 
-    const labels = { Queued: 'în coadă…', Running: 'se generează…', Done: 'gata', Failed: 'eroare', Rejected: 'respins' };
+    const rows = [
+      ['Hash', m.heightHash],
+      ['Durată', m.durationMs + ' ms'],
+      ['Teren', `${num(m.terrainSizeM, 0)} × ${num(m.terrainSizeM, 0)} m, relief ${num(relief, 0)} m`],
+      ['Nivelul apei', m.waterHeight > 0 ? meters(m.waterHeight) : 'fără apă'],
+      ['Înălțime min / medie / max', `${meters(m.minHeight)} / ${meters(m.meanHeight)} / ${meters(m.maxHeight)}`],
+      ['Deviație standard', meters(m.heightStdDev)],
+      ['P10 / P50 / P90', `${meters(m.heightP10)} / ${meters(m.heightP50)} / ${meters(m.heightP90)}`],
+      ['Pantă medie', num(m.meanSlopeDeg) + '°'],
+      ['Distribuția pantelor', bands],
+      ['Ținte', targets]
+    ];
+    $('metrics').innerHTML = rows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('');
+  }
 
-    function show(run) {
-        let text = `#${run.id} · seed ${run.seed} · ${labels[run.state] ?? run.state}`;
-        if (run.message) text += ` (${run.message})`;
-        $('status').textContent = text;
+  async function loadHistory() {
+    const runs = await getJson('/api/runs');
+    $('history').innerHTML = runs.map(r =>
+      `<li data-id="${r.id}">#${r.id} · ${esc(r.preset)} · seed ${r.seed} · ${stateRo[r.state] ?? r.state}` +
+      (r.heightHash ? ` · ${r.heightHash}` : '') + '</li>').join('');
+  }
 
-        $('result').hidden = !run.images;
-        if (run.images) {
-            $('top').src = run.images.top;
-            $('oblique').src = run.images.oblique;
-        }
+  $('history').onclick = async e => {
+    const li = e.target.closest('li');
+    if (!li) return;
+    clearInterval(pollTimer);
+    show(await getJson('/api/runs/' + li.dataset.id));
+  };
+  $('preset').onchange = showPresetDesc;
+  $('go').onclick = generate;
+  $('rnd').onclick = () => { $('seed').value = Math.floor(Math.random() * 999999) + 1; generate(); };
 
-        $('metricsCard').hidden = !run.metrics;
-        if (run.metrics) {
-            const m = run.metrics, f = (v, d = 3) => Number(v).toFixed(d);
-            const bands = ['0–5°', '5–15°', '15–30°', '30–45°', '45°+'];
-            const rows = [
-                ['Hash', m.heightHash],
-                ['Durată', f(m.durationMs, 0) + ' ms'],
-                ['Înălțime min / medie / max', `${f(m.minHeight)} / ${f(m.meanHeight)} / ${f(m.maxHeight)}`],
-                ['Deviație standard', f(m.heightStdDev)],
-                ['P10 / P50 / P90', `${f(m.heightP10)} / ${f(m.heightP50)} / ${f(m.heightP90)}`],
-                ['Pantă medie', f(m.meanSlopeDeg, 1) + '°'],
-                ...m.slopeBands.map((v, i) => ['Pantă ' + bands[i], f(v, 1) + '%'])
-            ];
-            $('metrics').innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
-        }
-    }
-
-    async function loadHistory() {
-        const runs = await (await fetch('/api/runs')).json();
-        $('history').innerHTML = runs.map(r =>
-            `<li data-id="${r.id}">#${r.id} · seed ${r.seed} · ${labels[r.state] ?? r.state}</li>`).join('');
-    }
-
-    $('history').addEventListener('click', e => { if (e.target.dataset.id) watch(e.target.dataset.id); });
-    $('go').addEventListener('click', () => {
-        const v = $('seed').value.trim();
-        generate(v === '' ? null : parseInt(v));
-    });
-    $('random').addEventListener('click', () => { $('seed').value = ''; generate(null); });
-
-    loadHistory();
+  loadPresets();
+  loadHistory();
 </script>
 </body>
 </html>

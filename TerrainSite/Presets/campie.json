@@ -1,0 +1,25 @@
+{
+  "name": "campie",
+  "label": "Câmpie",
+  "description": "Teren aproape plat, ondulări largi, râuri puțin adânci. Relief 5–20 m pe 1 km.",
+  "terrainSizeM": 1000,
+  "reliefM": [5, 20],
+
+  "ridge": { "enabled": false },
+  "voronoi": { "enabled": false },
+  "perlin": {
+    "enabled": true,
+    "layers": [
+      { "scale": [0.002, 0.004], "octaves": [3], "persistance": [0.4, 0.55], "heightScale": [0.3] },
+      { "scale": [0.01, 0.02], "octaves": [2], "persistance": [0.4, 0.55], "heightScale": [0.05] }
+    ]
+  },
+  "thermal": { "enabled": false },
+  "river": { "enabled": true, "droplets": [10, 30], "springs": [3, 5], "depthM": [0.3, 1], "lengthM": [200, 400] },
+  "smooth": { "enabled": true, "iterations": [2, 3] },
+  "water": { "enabled": true, "percentile": [0.03, 0.08] },
+  "textures": { "enabled": true, "sandBand": [0.02, 0.04], "rockSlopeDeg": [90], "snowEnabled": false },
+  "shoreline": { "enabled": false },
+
+  "targets": { "enabled": true, "meanSlopeDeg": [0.5, 3], "under5": [0.85, 1], "over30": [0, 0.01] }
+}

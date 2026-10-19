@@ -5,77 +5,95 @@ using TerrainSite;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// the "Generator" section from appsettings.json becomes a GeneratorOptions object
-builder.Services.Configure<GeneratorOptions>(builder.Configuration.GetSection("Generator"));
-var opt = builder.Configuration.GetSection("Generator").Get<GeneratorOptions>()!;
+var genSection = builder.Configuration.GetSection("Generator");
+builder.Services.Configure<GeneratorOptions>(genSection);
+var gen = genSection.Get<GeneratorOptions>() ?? throw new InvalidOperationException("no Generator section in appsettings.json");
+Directory.CreateDirectory(gen.DataDir);
+Directory.CreateDirectory(gen.RunsDir);   // has to exist before the file provider below
 
-// the sqlite file sits in data/ next to the runs
-builder.Services.AddDbContext<AppDb>(o =>
-    o.UseSqlite($"Data Source={Path.Combine(opt.DataDir, "generator.db")}"));
+builder.Services.AddDbContext<AppDb>(o => o.UseSqlite($"Data Source={Path.Combine(gen.DataDir, "generator.db")}"));
 builder.Services.AddSingleton<RunQueue>();
+builder.Services.AddSingleton<PresetLibrary>();
 builder.Services.AddHostedService<GeneratorWorker>();
 
 var app = builder.Build();
 
-// creates the db and the tables the first time
-Directory.CreateDirectory(opt.RunsDir);
+// creates the db if it's missing; it does NOT update an old one, so delete generator.db when Run changes
 using (var scope = app.Services.CreateScope())
     scope.ServiceProvider.GetRequiredService<AppDb>().Database.EnsureCreated();
 
-// wwwroot/index.html is the page
-app.UseDefaultFiles();
-app.UseStaticFiles();
-// data/runs is served at /runs so the page can show the pngs directly
-app.UseStaticFiles(new StaticFileOptions
+app.UseDefaultFiles();   // "/" -> index.html
+app.UseStaticFiles();    // wwwroot
+app.UseStaticFiles(new StaticFileOptions   // images of the runs, straight from data/runs
 {
-    FileProvider = new PhysicalFileProvider(opt.RunsDir),
+    FileProvider = new PhysicalFileProvider(gen.RunsDir),
     RequestPath = "/runs"
 });
 
-// the button: creates the run, puts it in the queue and answers right away with the id
-app.MapPost("/api/runs", async (CreateRunRequest req, AppDb db, RunQueue queue) =>
+app.MapGet("/api/presets", (PresetLibrary presets) =>
+    presets.All.Select(p => new { p.Name, p.Label, p.Description }));
+
+app.MapPost("/api/runs", async (CreateRunRequest req, AppDb db, RunQueue queue, PresetLibrary presets) =>
 {
-    var run = new Run { Seed = req.Seed ?? Random.Shared.Next(0, int.MaxValue) };
+    string name = string.IsNullOrWhiteSpace(req.Preset) ? "deal" : req.Preset.Trim();
+    var preset = presets.Find(name);
+    if (preset == null) return Results.BadRequest(new { error = $"unknown preset '{name}'" });
+
+    int seed = req.Seed ?? Random.Shared.Next(1, 1_000_000);
+    var run = new Run
+    {
+        Preset = preset.Name,
+        RequestedSeed = seed,
+        Seed = seed,
+        State = RunState.Queued,
+        CreatedAt = DateTime.UtcNow
+    };
     db.Runs.Add(run);
     await db.SaveChangesAsync();
     queue.Enqueue(run.Id);
-    return Results.Ok(new { run.Id });
+    return Results.Ok(ToDto(run));
 });
 
-// the last 20 runs, for the history list
 app.MapGet("/api/runs", async (AppDb db) =>
-{
-    var runs = await db.Runs.OrderByDescending(r => r.Id).Take(20).ToListAsync();
-    return runs.Select(ToDto);
-});
+    (await db.Runs.OrderByDescending(r => r.Id).Take(20).ToListAsync()).Select(ToDto));
 
-// one run, the page asks this every half second until it's done
 app.MapGet("/api/runs/{id:int}", async (int id, AppDb db) =>
-    await db.Runs.FindAsync(id) is { } r ? Results.Ok(ToDto(r)) : Results.NotFound());
+    await db.Runs.FindAsync(id) is { } run ? Results.Ok(ToDto(run)) : Results.NotFound());
 
 app.Run();
 
-// what the page gets: the run + the image links if it's done
-static object ToDto(Run r) => new
+// what the page gets, not the db row itself
+static object ToDto(Run r)
 {
-    r.Id,
-    r.Seed,
-    r.Preset,
-    State = r.State.ToString(),
-    r.Message,
-    r.CreatedAt,
-    r.FinishedAt,
-    r.HeightHash,
-    r.DurationMs,
-    Metrics = r.MetricsJson == null ? (JsonElement?)null : JsonSerializer.Deserialize<JsonElement>(r.MetricsJson),
-    Images = r.State == RunState.Done
-        ? new
-        {
-            Top = $"/runs/{r.Folder}/top.png",
-            Oblique = $"/runs/{r.Folder}/oblique.png",
-            Preview = $"/runs/{r.Folder}/preview.png"
-        }
-        : null
-};
+    bool hasImages = r.State is RunState.Done or RunState.Rejected;
+    string v = (r.FinishedAt?.Ticks ?? 0).ToString();   // new url after a retry, so the browser doesn't show the old image
+    return new
+    {
+        r.Id,
+        r.Preset,
+        r.RequestedSeed,
+        r.Seed,
+        r.Attempts,
+        State = r.State.ToString(),
+        r.Message,
+        r.CreatedAt,
+        r.FinishedAt,
+        r.HeightHash,
+        r.DurationMs,
+        Metrics = ParseJson(r.MetricsJson),
+        Config = ParseJson(r.ConfigJson),
+        Images = hasImages
+            ? new
+            {
+                Top = $"/runs/{r.Folder}/top.png?v={v}",
+                Oblique = $"/runs/{r.Folder}/oblique.png?v={v}",
+                Preview = $"/runs/{r.Folder}/preview.png?v={v}"
+            }
+            : null
+    };
+}
 
-record CreateRunRequest(int? Seed);
+static JsonElement? ParseJson(string? json) =>
+    string.IsNullOrEmpty(json) ? null : JsonDocument.Parse(json).RootElement.Clone();
+
+record CreateRunRequest(int? Seed, string? Preset);

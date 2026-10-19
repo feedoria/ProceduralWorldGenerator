@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -62,32 +61,54 @@ public static class GenMenu
         EditorUtility.RevealInFinder(path);
     }
 
+    // Inspector values -> config v2, so a terrain made by hand can go through the pipeline
+    // only the steps the Inspector has values for get turned on, the rest stays off
     [MenuItem("Tools/Gen/Save Inspector As Config")]
     static void SaveInspector()
     {
         var t = UnityEngine.Object.FindFirstObjectByType<CustomTerrain>();
         if (t == null) { Debug.LogError("[Gen] no CustomTerrain in scene"); return; }
 
+        var size = t.GetComponent<Terrain>().terrainData.size;
         var c = new TerrainConfig
         {
             seed = UnityEngine.Random.Range(0, int.MaxValue),
             preset = "custom",
-            voronoiPeaks = t.voronoiPeaks,
-            voronoiFallOff = t.voronoiFallOff,
-            voronoiDropOff = t.voronoiDropOff,
-            voronoiMinHeight = t.voronoiMinHeight,
-            voronoiMaxHeight = t.voronoiMaxHeight,
-            voronoiType = t.voronoiType.ToString(),
-            perlinLayers = t.perlinParameters.Select(p => new PerlinLayer
+            terrainSizeM = size.x,
+            reliefM = size.y
+        };
+
+        c.ridge.enabled = false;
+
+        c.voronoi.enabled = t.voronoiPeaks > 0;
+        c.voronoi.peaks = t.voronoiPeaks;
+        c.voronoi.type = t.voronoiType.ToString();
+        c.voronoi.fallOff = t.voronoiFallOff;
+        c.voronoi.dropOff = t.voronoiDropOff;
+        c.voronoi.minHeight = t.voronoiMinHeight;
+        c.voronoi.maxHeight = t.voronoiMaxHeight;
+
+        c.perlin.layers.Clear();
+        foreach (var p in t.perlinParameters)
+        {
+            c.perlin.layers.Add(new PerlinLayer
             {
                 xScale = p.mPerlinXScale,
                 yScale = p.mPerlinYScale,
                 octaves = p.mPerlinOctaves,
                 persistance = p.mPerlinPersistance,
                 heightScale = p.mPerlinHeightScale
-            }).ToList(),
-            smoothIterations = t.smoothAmount
-        };
+            });
+        }
+        c.perlin.enabled = c.perlin.layers.Count > 0;
+
+        c.thermal.enabled = false;
+        c.river.enabled = false;
+        c.smooth.enabled = t.smoothAmount > 0;
+        c.smooth.iterations = t.smoothAmount;
+        c.water.enabled = false;
+        c.textures.enabled = false;
+        c.targets.enabled = false;   // a hand made terrain has no preset to be checked against
 
         Directory.CreateDirectory(ConfigDir);
         string path = Path.Combine(ConfigDir, $"inspector_{DateTime.Now:yyyyMMdd_HHmmss}.json");

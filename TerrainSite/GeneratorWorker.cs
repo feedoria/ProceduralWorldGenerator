@@ -5,14 +5,17 @@ using Microsoft.Extensions.Options;
 
 namespace TerrainSite;
 
-// runs in the background for as long as the site is on
-// takes runs from the queue, starts the unity exe for each one and saves the results
-public class GeneratorWorker(IServiceScopeFactory scopes, RunQueue queue,
-    IOptions<GeneratorOptions> options, ILogger<GeneratorWorker> log) : BackgroundService
+// runs in the background for as long as the site is up
+// takes runs from the queue, samples the preset, starts the unity exe, reads what it left behind
+public class GeneratorWorker(
+    IServiceScopeFactory scopes,
+    RunQueue queue,
+    PresetLibrary presets,
+    IOptions<GeneratorOptions> options,
+    ILogger<GeneratorWorker> logger) : BackgroundService
 {
-    private readonly GeneratorOptions _opt = options.Value;
+    readonly GeneratorOptions opt = options.Value;
 
-    // camelCase so "VoronoiPeaks" becomes "voronoiPeaks", exactly like the unity fields
     public static readonly JsonSerializerOptions Json = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -20,145 +23,143 @@ public class GeneratorWorker(IServiceScopeFactory scopes, RunQueue queue,
         WriteIndented = true
     };
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        Directory.CreateDirectory(_opt.ConfigsDir);
-        Directory.CreateDirectory(_opt.RunsDir);
-        await RecoverAsync();
+    record Attempt(RunState State, string? Message, RunMetrics? Metrics, string? MetricsJson);
 
-        // waits here until something is in the queue, one run at a time
-        await foreach (int id in queue.ReadAllAsync(stoppingToken))
+    protected override async Task ExecuteAsync(CancellationToken ct)
+    {
+        Directory.CreateDirectory(opt.ConfigsDir);
+        Directory.CreateDirectory(opt.RunsDir);
+        await RecoverAsync(ct);
+
+        await foreach (int id in queue.ReadAllAsync(ct))
         {
-            try { await ProcessAsync(id, stoppingToken); }
-            catch (Exception e) { log.LogError(e, "run {Id} crashed the worker", id); }
+            try { await ProcessAsync(id, ct); }
+            catch (Exception e) when (e is not OperationCanceledException)
+            {
+                logger.LogError(e, "run {Id} crashed", id);
+            }
         }
     }
 
-    // after a restart of the site: queued runs go back in the queue,
-    // running ones were cut in the middle so they count as failed
-    private async Task RecoverAsync()
+    // runs left over from the last time the site stopped
+    async Task RecoverAsync(CancellationToken ct)
     {
         using var scope = scopes.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDb>();
 
-        foreach (var r in await db.Runs.Where(r => r.State == RunState.Running).ToListAsync())
+        foreach (var run in await db.Runs.Where(r => r.State == RunState.Running).ToListAsync(ct))
         {
-            r.State = RunState.Failed;
-            r.Message = "site restarted during the run";
+            run.State = RunState.Failed;
+            run.Message = "the site stopped during the run";
+            run.FinishedAt = DateTime.UtcNow;
         }
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
 
-        var queued = await db.Runs.Where(r => r.State == RunState.Queued)
-                                  .OrderBy(r => r.Id).Select(r => r.Id).ToListAsync();
+        var queued = await db.Runs.Where(r => r.State == RunState.Queued).OrderBy(r => r.Id).Select(r => r.Id).ToListAsync(ct);
         foreach (int id in queued) queue.Enqueue(id);
     }
 
-    private async Task ProcessAsync(int id, CancellationToken ct)
+    async Task ProcessAsync(int id, CancellationToken ct)
     {
-        // the worker lives forever but the db context is short lived, so a new scope per run
-        using var scope = scopes.CreateScope();
+        using var scope = scopes.CreateScope();   // DbContext is scoped, the worker is a singleton
         var db = scope.ServiceProvider.GetRequiredService<AppDb>();
-
         var run = await db.Runs.FindAsync([id], ct);
-        if (run == null || run.State != RunState.Queued) return;
+        if (run == null) return;
 
         run.State = RunState.Running;
         await db.SaveChangesAsync(ct);
 
-        try
+        Attempt result = new(RunState.Failed, "no attempt was made", null, null);
+        for (int attempt = 1; attempt <= opt.MaxAttempts; attempt++)
         {
-            await GenerateAsync(run, ct);
-        }
-        catch (Exception e)
-        {
-            // exe missing, folder without rights etc -> the run fails but the site keeps going
-            run.State = RunState.Failed;
-            run.Message = e.Message;
+            int seed = run.RequestedSeed + attempt - 1;
+            var config = presets.Sample(run.Preset, seed);
+
+            run.Attempts = attempt;
+            run.Seed = seed;
+            run.ConfigJson = JsonSerializer.Serialize(config, Json);
+            await db.SaveChangesAsync(ct);   // so the page can show "attempt 2"
+
+            result = await GenerateAsync(run, config, ct);
+            if (result.State != RunState.Rejected) break;
+            logger.LogInformation("run {Id}: seed {Seed} rejected ({Msg})", run.Id, seed, result.Message);
         }
 
-        run.FinishedAt = DateTime.Now;
-        // None so it still saves even if the site is shutting down
-        await db.SaveChangesAsync(CancellationToken.None);
+        run.State = result.State;
+        run.Message = result.Message;
+        run.FinishedAt = DateTime.UtcNow;
+        if (result.Metrics is { } m)
+        {
+            run.HeightHash = m.HeightHash;
+            run.DurationMs = m.DurationMs;
+            run.MeanHeight = m.MeanHeight;
+            run.HeightStdDev = m.HeightStdDev;
+            run.MeanSlopeDeg = m.MeanSlopeDeg;
+            run.MetricsJson = result.MetricsJson;
+        }
+        await db.SaveChangesAsync(CancellationToken.None);   // save the result even if the site is stopping
     }
 
-    private async Task GenerateAsync(Run run, CancellationToken ct)
+    async Task<Attempt> GenerateAsync(Run run, TerrainConfig config, CancellationToken ct)
     {
-        // 1. writing the config file that unity reads
-        var config = new TerrainConfig { Seed = run.Seed, Preset = run.Preset };
-        string configPath = Path.Combine(_opt.ConfigsDir, run.Folder + ".json");
-        await File.WriteAllTextAsync(configPath, JsonSerializer.Serialize(config, Json), ct);
+        string configPath = Path.Combine(opt.ConfigsDir, run.Folder + ".json");
+        string outDir = Path.Combine(opt.RunsDir, run.Folder);
 
-        string outDir = Path.Combine(_opt.RunsDir, run.Folder);
+        await File.WriteAllTextAsync(configPath, JsonSerializer.Serialize(config, Json), ct);
+        if (Directory.Exists(outDir))
+        {
+            try { Directory.Delete(outDir, true); }   // clean folder for every attempt
+            catch (IOException e) { logger.LogWarning("could not clean {Dir}: {Msg}", outDir, e.Message); }
+        }
         Directory.CreateDirectory(outDir);
 
-        // 2. starting the exe exactly like i did from powershell
-        var psi = new ProcessStartInfo(_opt.ExePath) { UseShellExecute = false };
-        string[] args =
-        [
-            "-config", configPath,
-            "-out", outDir,
-            "-logFile", Path.Combine(outDir, "player.log"), // unity's own log, per run
-            "-screen-fullscreen", "0", "-screen-width", "640", "-screen-height", "360"
-        ];
-        foreach (string a in args) psi.ArgumentList.Add(a); // ArgumentList handles the quotes by itself
+        var psi = new ProcessStartInfo(opt.ExePath) { UseShellExecute = false };
+        foreach (string arg in new[]
+                 {
+                     "-config", configPath,
+                     "-out", outDir,
+                     "-logFile", Path.Combine(outDir, "player.log"),
+                     "-screen-fullscreen", "0", "-screen-width", "640", "-screen-height", "360"
+                 })
+            psi.ArgumentList.Add(arg);
 
-        int? exitCode = null;
-        using (var p = Process.Start(psi) ?? throw new Exception("could not start the exe"))
+        using var proc = Process.Start(psi) ?? throw new InvalidOperationException("could not start the generator");
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(opt.TimeoutSeconds));
+
+        try
         {
-            // if unity hangs i dont wait forever
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeout.CancelAfter(TimeSpan.FromSeconds(_opt.TimeoutSeconds));
-            try
-            {
-                await p.WaitForExitAsync(timeout.Token);
-                exitCode = p.ExitCode;
-            }
-            catch (OperationCanceledException)
-            {
-                p.Kill(entireProcessTree: true);
-            }
+            await proc.WaitForExitAsync(timeout.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            proc.Kill(entireProcessTree: true);
+            if (ct.IsCancellationRequested) throw;   // the site is stopping, not a timeout
+            return new Attempt(RunState.Failed, $"timeout after {opt.TimeoutSeconds} s", null, null);
         }
 
-        // 3. reading what unity left in the run folder
         var status = await ReadJsonAsync<RunStatus>(Path.Combine(outDir, "status.json"));
+        string metricsPath = Path.Combine(outDir, "metrics.json");
+        string? metricsJson = File.Exists(metricsPath) ? await File.ReadAllTextAsync(metricsPath, ct) : null;
+        var metrics = metricsJson == null ? null : JsonSerializer.Deserialize<RunMetrics>(metricsJson, Json);
 
-        if (exitCode == null)
+        // status.json is the contract, the exit code is only for when it's missing
+        var state = status?.State switch
         {
-            run.State = RunState.Failed;
-            run.Message = $"timeout after {_opt.TimeoutSeconds}s";
-        }
-        else if (status == null || status.State != "done")
-        {
-            run.State = RunState.Failed;
-            run.Message = $"exit code {exitCode}, status.json missing or not finished";
-        }
-        else if (status.Code == 0)
-        {
-            string metricsPath = Path.Combine(outDir, "metrics.json");
-            var m = await ReadJsonAsync<RunMetrics>(metricsPath);
-            run.State = RunState.Done;
-            if (m != null)
-            {
-                run.HeightHash = m.HeightHash;
-                run.DurationMs = m.DurationMs;
-                run.MeanHeight = m.MeanHeight;
-                run.HeightStdDev = m.HeightStdDev;
-                run.MeanSlopeDeg = m.MeanSlopeDeg;
-                run.MetricsJson = await File.ReadAllTextAsync(metricsPath, ct);
-            }
-        }
-        else
-        {
-            // 2 = rejected by the quality check, anything else = error
-            run.State = status.Code == 2 ? RunState.Rejected : RunState.Failed;
-            run.Message = status.Message;
-        }
+            "done" => RunState.Done,
+            "rejected" => RunState.Rejected,
+            _ => RunState.Failed
+        };
+        string? message = status?.Message;
+        if (status == null) message = $"no status.json (exit code {proc.ExitCode})";
+
+        return new Attempt(state, message, metrics, metricsJson);
     }
 
-    private static async Task<T?> ReadJsonAsync<T>(string path)
+    static async Task<T?> ReadJsonAsync<T>(string path) where T : class
     {
-        if (!File.Exists(path)) return default;
+        if (!File.Exists(path)) return null;
         try { return JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(path), Json); }
-        catch (JsonException) { return default; }
+        catch (JsonException) { return null; }
     }
 }

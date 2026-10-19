@@ -4,26 +4,28 @@ namespace TerrainSite;
 
 public enum RunState { Queued, Running, Done, Failed, Rejected }
 
-// one row in sqlite = one generation
+// one row in the database = one click on "Generează"
 public class Run
 {
     public int Id { get; set; }
-    public int Seed { get; set; }
-    public string Preset { get; set; } = "hills";
-    public RunState State { get; set; } = RunState.Queued;
-    public string? Message { get; set; } // what went wrong, if something did
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public string Preset { get; set; } = "deal";
+    public int RequestedSeed { get; set; }   // the seed the user asked for
+    public int Seed { get; set; }            // the seed actually used (+1 for every rejected try)
+    public int Attempts { get; set; }
+    public RunState State { get; set; }
+    public string? Message { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? FinishedAt { get; set; }
 
-    // the main metrics get their own columns so i can sort and plot them later
+    // copied from metrics.json so they can be queried and compared later
     public string? HeightHash { get; set; }
-    public double? DurationMs { get; set; }
-    public float? MeanHeight { get; set; }
-    public float? HeightStdDev { get; set; }
-    public float? MeanSlopeDeg { get; set; }
-    // the whole metrics.json as text, so a new metric in unity doesnt need a new column right away
-    public string? MetricsJson { get; set; }
+    public long? DurationMs { get; set; }
+    public double? MeanHeight { get; set; }
+    public double? HeightStdDev { get; set; }
+    public double? MeanSlopeDeg { get; set; }
 
-    // folder name in data/runs, not saved in the db because it comes from the id
+    public string? MetricsJson { get; set; }
+    public string? ConfigJson { get; set; }  // the exact config sent to unity
+
     [NotMapped] public string Folder => $"run_{Id:D6}";
 }
