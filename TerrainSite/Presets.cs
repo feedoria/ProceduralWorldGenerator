@@ -174,7 +174,7 @@ public class PresetLibrary
                 Passes = s.I(p.Thermal.Passes),
                 Amount = s.F(p.Thermal.Amount)
             },
-            River = new RiverBlock
+            River = new RiverBlock 
             {
                 Enabled = p.River.Enabled,
                 Droplets = s.I(p.River.Droplets),
