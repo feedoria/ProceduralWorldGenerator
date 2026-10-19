@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// steps only copy config into the teacher's fields and call her methods
+// every step just copies the values from the config into the teacher's fields
+// and then calls her method, so her code stays untouched
 
 public class ResetStep : IStep
 {
@@ -10,7 +11,10 @@ public class ResetStep : IStep
     public void Apply(RunContext ctx)
     {
         ctx.terrain.ResetTerrain();
-        ctx.terrain.resetTerrain = false; // so the next steps stack
+        // after the reset the next steps have to add on top of each other, not start from zero again
+        ctx.terrain.resetTerrain = false;
+        // the generator scene was copied from my scene so it still had my old trees on it
+        ctx.Data.treeInstances = new TreeInstance[0];
     }
 }
 
@@ -26,15 +30,18 @@ public class VoronoiStep : IStep
         t.voronoiDropOff = c.voronoiDropOff;
         t.voronoiMinHeight = c.voronoiMinHeight;
         t.voronoiMaxHeight = c.voronoiMaxHeight;
+        // the type is a string in the json so it's readable, if it's misspelled it falls back to Combined
         t.voronoiType = StepUtil.ParseEnum(c.voronoiType, CustomTerrain.VoronoiType.Combined);
 
-        // perlin voronoi reads the single perlin fields, so those come from config too
+        // the Perlin type of voronoi reads the single perlin fields, so i set those from the config too
+        // otherwise the result would depend on whatever was left in the inspector
         PerlinLayer p = c.perlinLayers.Count > 0 ? c.perlinLayers[0] : new PerlinLayer();
         t.perlinXScale = p.xScale;
         t.perlinYScale = p.yScale;
         t.perlinOctaves = p.octaves;
         t.perlinPersistance = p.persistance;
         t.perlinHeightScale = p.heightScale;
+        // offsets come from the seed (Random is already seeded in Gen.Run)
         t.perlinOffsetX = UnityEngine.Random.Range(0, 10000);
         t.perlinOffsetY = UnityEngine.Random.Range(0, 10000);
 
@@ -47,6 +54,7 @@ public class MultiplePerlinStep : IStep
     public string Name => "Multiple Perlin";
     public void Apply(RunContext ctx)
     {
+        // turning every layer from the config into a row of the teacher's perlin table
         var list = new List<CustomTerrain.PerlinParameters>();
         foreach (PerlinLayer p in ctx.config.perlinLayers)
         {
@@ -80,6 +88,7 @@ public class SmoothStep : IStep
 
 public static class StepUtil
 {
+    // string -> enum, ignoring upper/lower case, with a fallback if the name doesnt exist
     public static T ParseEnum<T>(string value, T fallback) where T : struct
     {
         return Enum.TryParse(value, true, out T result) ? result : fallback;

@@ -418,29 +418,29 @@ MonoBehaviour:
   heightMapImage: {fileID: 2800000, guid: 96647ebd86c0d4045ba1f0e484e85d6e, type: 3}
   heightMapScale: {x: 1, y: 0.5, z: 1}
   resetTerrain: 0
-  perlinXScale: 0.001
-  perlinYScale: 0.001
-  perlinOffsetX: 982
-  perlinOffsetY: 3988
-  perlinOctaves: 7
-  perlinPersistance: 2.64
-  perlinHeightScale: 0.602
+  perlinXScale: 0.004
+  perlinYScale: 0.004
+  perlinOffsetX: 3150
+  perlinOffsetY: 7277
+  perlinOctaves: 4
+  perlinPersistance: 0.5
+  perlinHeightScale: 0.12
   perlinParameters:
-  - mPerlinXScale: 0.005
-    mPerlinYScale: 0.005
-    mPerlinOctaves: 3
-    mPerlinPersistance: 8
-    mPerlinHeightScale: 0.09
-    mPerlinOffsetX: 0
-    mPerlinOffsetY: 0
+  - mPerlinXScale: 0.004
+    mPerlinYScale: 0.004
+    mPerlinOctaves: 4
+    mPerlinPersistance: 0.5
+    mPerlinHeightScale: 0.12
+    mPerlinOffsetX: 3942
+    mPerlinOffsetY: 9655
     remove: 0
-  - mPerlinXScale: 0.001
-    mPerlinYScale: 0.001
+  - mPerlinXScale: 0.03
+    mPerlinYScale: 0.03
     mPerlinOctaves: 3
-    mPerlinPersistance: 8
-    mPerlinHeightScale: 1
-    mPerlinOffsetX: 0
-    mPerlinOffsetY: 0
+    mPerlinPersistance: 0.5
+    mPerlinHeightScale: 0.02
+    mPerlinOffsetX: 1998
+    mPerlinOffsetY: 2929
     remove: 0
   splatHeights:
   - texture: {fileID: 2800000, guid: dd49ed99f55924d13bacefd240626bc5, type: 3}
@@ -571,17 +571,17 @@ MonoBehaviour:
     remove: 0
   maxDetails: 6875
   detailSpacing: 1
-  voronoiFallOff: 7.3
-  voronoiDropOff: 0.7
-  voronoiMinHeight: 0.2
-  voronoiMaxHeight: 0.15
-  voronoiPeaks: 7
-  voronoiType: 5
+  voronoiFallOff: 0.2
+  voronoiDropOff: 0.6
+  voronoiMinHeight: 0.1
+  voronoiMaxHeight: 0.3
+  voronoiPeaks: 5
+  voronoiType: 3
   MPDheightMin: -2
   MPDheightMax: 2
   MPDheightDampenerPower: 2
   MPDroughness: 2
-  smoothAmount: 5
+  smoothAmount: 1
   waterHeight: 0.03
   waterGO: {fileID: 9039902028270093340, guid: 73b3e74cda79b47489a6e45f92e2b3bb, type: 3}
   shoreLineMaterial: {fileID: 2100000, guid: 688aa98bd8fa92d47a9488699cd403af, type: 2}
@@ -687,7 +687,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &817732169
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -836,7 +836,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &932327687
 Transform:
   m_ObjectHideFlags: 0
@@ -851,6 +851,50 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1481472032}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1160577147
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1160577149}
+  - component: {fileID: 1160577148}
+  m_Layer: 0
+  m_Name: GenRunner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1160577148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160577147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3120158df2185442a650cca74eeb17f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GenRunner
+--- !u!4 &1160577149
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160577147}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 478.5554, y: 36.3801, z: 541.2294}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &1181236752
@@ -1131,3 +1175,4 @@ SceneRoots:
   - {fileID: 566635990}
   - {fileID: 932327687}
   - {fileID: 817732172}
+  - {fileID: 1160577149}

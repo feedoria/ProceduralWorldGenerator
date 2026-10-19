@@ -1,4 +1,6 @@
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using System;
 using System.Collections.Generic;
@@ -811,10 +813,13 @@ public class CustomTerrain : MonoBehaviour {
             newSplatPrototypes[spindex].tileOffset = sh.tileOffset;
             newSplatPrototypes[spindex].tileSize = sh.tileSize;
             newSplatPrototypes[spindex].diffuseTexture.Apply(true);
+#if UNITY_EDITOR
+            // saving the layers as assets only makes sense in the editor
             string path = "Assets/New TerrainLayer " + spindex + ".terrainLayer";
             AssetDatabase.CreateAsset(newSplatPrototypes[spindex], path);
-            spindex++;
             Selection.activeObject = this.gameObject;
+#endif
+            spindex++;
         }
         terrainData.terrainLayers = newSplatPrototypes;
 
@@ -908,9 +913,11 @@ public class CustomTerrain : MonoBehaviour {
         // taking the actual terrain so it doesnt smooth a flat one when resetTerrain is on
         float[,] heightMap = terrainData.GetHeights(0, 0, hmr, hmr);
         float smoothProgress = 0;
+#if UNITY_EDITOR
         EditorUtility.DisplayProgressBar("Smoothing Terrain",
                                  "Progress",
                                  smoothProgress);
+#endif
 
         for (int s = 0; s < smoothAmount; s++)
         {
@@ -930,13 +937,17 @@ public class CustomTerrain : MonoBehaviour {
                 }
             }
             smoothProgress++;
+#if UNITY_EDITOR
             EditorUtility.DisplayProgressBar("Smoothing Terrain",
                                              "Progress",
                                              smoothProgress/smoothAmount);
+#endif
 
         }
         terrainData.SetHeights(0, 0, heightMap);
+#if UNITY_EDITOR
         EditorUtility.ClearProgressBar();
+#endif
     }
     
     /*public void Smooth()
@@ -1323,6 +1334,7 @@ public class CustomTerrain : MonoBehaviour {
     int terrainLayer = -1;
     void Awake()
     {
+#if UNITY_EDITOR
         SerializedObject tagManager = new SerializedObject(
                               AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
 
@@ -1336,6 +1348,10 @@ public class CustomTerrain : MonoBehaviour {
         SerializedProperty layerProp = tagManager.FindProperty("layers");
         terrainLayer = AddTag(layerProp, "Terrain", TagType.Layer);
         tagManager.ApplyModifiedProperties();
+#else
+        // no TagManager in a build, the tags and layer are already in the project settings
+        terrainLayer = LayerMask.NameToLayer("Terrain");
+#endif
 
         //take this object
         this.gameObject.tag = "Terrain";
@@ -1343,6 +1359,7 @@ public class CustomTerrain : MonoBehaviour {
             this.gameObject.layer = terrainLayer;
     }
 
+#if UNITY_EDITOR
     int AddTag(SerializedProperty tagsProp, string newTag, TagType tType)
     {
         bool found = false;
@@ -1375,6 +1392,7 @@ public class CustomTerrain : MonoBehaviour {
         }
         return -1;
     }
+#endif
 
     // Use this for initialization
 	void Start () {
