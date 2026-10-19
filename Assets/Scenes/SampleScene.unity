@@ -480,11 +480,11 @@ MonoBehaviour:
     splatNoiseScaler: 0.1
     remove: 0
   vegetation:
-  - mesh: {fileID: -927199367670048503, guid: 8c7d35afbd119bca11002b7b44295342, type: 3}
+  - mesh: {fileID: 1161353438629590, guid: 72354f396f6b2c548b4caf8c14700800, type: 3}
     minHeight: 0.1
-    maxHeight: 1
+    maxHeight: 2.5
     minSlope: 0
-    maxSlope: 35
+    maxSlope: 30
     minScale: 0.5
     maxScale: 1
     colour1: {r: 0.90943396, g: 0.5054702, b: 0.25223923, a: 1}
@@ -494,13 +494,41 @@ MonoBehaviour:
     maxRotation: 360
     density: 0.5
     remove: 0
-  - mesh: {fileID: -927199367670048503, guid: 10337ad1bd11abca11002b7b44295342, type: 3}
+  - mesh: {fileID: 1248965652193994, guid: 5bd9ec841db13e246af249aaf8c74a4d, type: 3}
     minHeight: 0.1
-    maxHeight: 0.7
+    maxHeight: 1.94
     minSlope: 0
-    maxSlope: 90
+    maxSlope: 70
     minScale: 0.5
     maxScale: 1
+    colour1: {r: 0.6132076, g: 0.21115166, b: 0.21115166, a: 1}
+    colour2: {r: 0.22076362, g: 0.38679248, b: 0.26660687, a: 1}
+    lightColour: {r: 0.10279457, g: 0.6226415, b: 0.38259572, a: 1}
+    minRotation: 0
+    maxRotation: 360
+    density: 0.5
+    remove: 0
+  - mesh: {fileID: 1026301210006380, guid: db807532c32a0684185a0f79cce99895, type: 3}
+    minHeight: 0.1
+    maxHeight: 2.85
+    minSlope: 0
+    maxSlope: 90
+    minScale: 0.9
+    maxScale: 1
+    colour1: {r: 1, g: 1, b: 1, a: 1}
+    colour2: {r: 1, g: 1, b: 1, a: 1}
+    lightColour: {r: 1, g: 1, b: 1, a: 1}
+    minRotation: 0
+    maxRotation: 360
+    density: 0.8
+    remove: 0
+  - mesh: {fileID: 1524449675286748, guid: c85b7accc96c8994798de48df9d98b1e, type: 3}
+    minHeight: 0.1
+    maxHeight: 0.2
+    minSlope: 0
+    maxSlope: 90
+    minScale: 1.38
+    maxScale: 1.66
     colour1: {r: 1, g: 1, b: 1, a: 1}
     colour2: {r: 1, g: 1, b: 1, a: 1}
     lightColour: {r: 1, g: 1, b: 1, a: 1}
@@ -511,37 +539,37 @@ MonoBehaviour:
   maxTrees: 10000
   treeSpacing: 10
   details:
-  - prototype: {fileID: 0}
-    prototypeTexture: {fileID: 2800000, guid: bf5ddf96bd116869a000fb488f962b59, type: 3}
-    minHeight: 0.1
+  - prototype: {fileID: 1301658637893172, guid: dc546f2f4476f354ab2c417ad7c851c0, type: 3}
+    prototypeTexture: {fileID: 0}
+    minHeight: 0.2
     maxHeight: 0.74
     minSlope: 0
-    maxSlope: 40
+    maxSlope: 45.32
     dryColour: {r: 1, g: 1, b: 1, a: 1}
     healthyColour: {r: 1, g: 1, b: 1, a: 1}
     heightRange: {x: 1, y: 1}
     widthRange: {x: 1, y: 1}
-    noiseSpread: 0.5
+    noiseSpread: 2.5
     overlap: 0.01
     feather: 0.05
     density: 1
     remove: 0
-  - prototype: {fileID: 0}
-    prototypeTexture: {fileID: 2800000, guid: a65d3373cd11cd72a00009188f962b59, type: 3}
-    minHeight: 0.1
-    maxHeight: 0.2
+  - prototype: {fileID: 1227008230904540, guid: fa9eddae9eedd5a4cb0c58258fa1c84a, type: 3}
+    prototypeTexture: {fileID: 0}
+    minHeight: 0.31
+    maxHeight: 1.69
     minSlope: 0
     maxSlope: 80
     dryColour: {r: 0.4811321, g: 0.44227353, b: 0.28368637, a: 1}
     healthyColour: {r: 0.19686688, g: 0.4716981, b: 0.14462443, a: 1}
     heightRange: {x: 1, y: 1}
     widthRange: {x: 1, y: 1}
-    noiseSpread: 1
+    noiseSpread: 1.22
     overlap: 0.1
     feather: 1.9
-    density: 0.5
+    density: 0.85
     remove: 0
-  maxDetails: 5000
+  maxDetails: 6875
   detailSpacing: 1
   voronoiFallOff: 7.3
   voronoiDropOff: 0.7
@@ -600,7 +628,7 @@ Terrain:
   m_TreeBillboardDistance: 50
   m_TreeCrossFadeLength: 5
   m_TreeMaximumFullLODCount: 50
-  m_DetailObjectDistance: 5000
+  m_DetailObjectDistance: 6875
   m_DetailObjectDensity: 1
   m_HeightmapPixelError: 5
   m_SplatMapDistance: 1000
