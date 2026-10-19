@@ -1,9 +1,10 @@
 {
   "name": "munte",
   "label": "Munte",
-  "description": "Masiv cu creste, pante abrupte, stâncă și zăpadă sus. Relief 250–350 m pe 1 km.",
-  "terrainSizeM": 1000,
-  "reliefM": [250, 350],
+  "description": "Masiv cu creste, văi largi și vârfuri abrupte, stâncă și zăpadă sus. 3 × 3 km, relief 750–1050 m.",
+  "terrainSizeM": 3000,
+  "reliefM": [750, 1050],
+  "exponent": [1.5],
 
   "ridge": {
     "enabled": true,
@@ -23,7 +24,7 @@
   },
   "perlin": {
     "enabled": true,
-    "layers": [ 
+    "layers": [
       { "scale": [0.001, 0.0015], "octaves": [3], "persistance": [0.45, 0.55], "heightScale": [0.6] },
       { "scale": [0.02, 0.04], "octaves": [3], "persistance": [0.4, 0.55], "heightScale": [0.02, 0.03] }
     ]

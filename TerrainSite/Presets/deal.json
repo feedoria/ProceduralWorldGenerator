@@ -1,16 +1,16 @@
 {
   "name": "deal",
   "label": "Deal",
-  "description": "Dealuri rotunjite, pante moderate, câteva văi. Relief 50–100 m pe 1 km.",
+  "description": "Dealuri rotunjite, pante moderate, câteva văi. Relief 100–160 m pe 1 km.",
   "terrainSizeM": 1000,
-  "reliefM": [50, 100],
+  "reliefM": [100, 160],
 
   "ridge": { "enabled": false },
   "voronoi": { "enabled": false },
   "perlin": {
     "enabled": true,
     "layers": [
-      { "scale": [0.002, 0.003], "octaves": [3], "persistance": [0.4, 0.55], "heightScale": [0.5] },
+      { "scale": [0.0025, 0.0035], "octaves": [3], "persistance": [0.4, 0.55], "heightScale": [0.5] },
       { "scale": [0.01, 0.02], "octaves": [2], "persistance": [0.4, 0.55], "heightScale": [0.01, 0.03] }
     ]
   },
@@ -21,5 +21,5 @@
   "textures": { "enabled": true, "sandBand": [0.01, 0.03], "rockSlopeDeg": [30, 35], "snowEnabled": false },
   "shoreline": { "enabled": false },
 
-  "targets": { "enabled": true, "meanSlopeDeg": [4, 12], "under5": [0.2, 0.6], "over30": [0, 0.05] }
+  "targets": { "enabled": true, "meanSlopeDeg": [8, 16], "under5": [0.05, 0.35], "over30": [0, 0.05] }
 }

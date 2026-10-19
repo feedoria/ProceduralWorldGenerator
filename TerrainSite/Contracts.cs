@@ -97,6 +97,7 @@ public class TerrainConfig
     public string Preset { get; set; } = "deal";
     public float TerrainSizeM { get; set; } = 1000f;
     public float ReliefM { get; set; } = 100f;
+    public float Exponent { get; set; } = 1f;
     public float MinHeightRange { get; set; } = 0.01f;
 
     public RidgeBlock Ridge { get; set; } = new();

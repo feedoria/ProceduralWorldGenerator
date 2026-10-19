@@ -129,15 +129,22 @@ public class NormalizeStep : IStep
         float range = max - min;
         if (range > 1e-6f)   // a flat terrain stays flat, Quality rejects it later
         {
+            // stretch to 0..1, then optionally bend the curve:
+            // with exponent > 1 low heights drop a lot and high ones barely move,
+            // so valleys get wider and flatter and the peaks stand out
+            float e = ctx.config.exponent;
             for (int y = 0; y < res; y++)
                 for (int x = 0; x < res; x++)
-                    h[y, x] = (h[y, x] - min) / range;
+                {
+                    float v = (h[y, x] - min) / range;
+                    h[y, x] = e == 1f ? v : Mathf.Pow(v, e);
+                }
             td.SetHeights(0, 0, h);
         }
 
         var c = ctx.config;
         td.size = new Vector3(c.terrainSizeM, c.reliefM, c.terrainSizeM);
-        ctx.Log($"Normalize: raw range {min:0.0000}..{max:0.0000}, size {c.terrainSizeM} m, relief {c.reliefM} m");
+        ctx.Log($"Normalize: raw range {min:0.0000}..{max:0.0000}, size {c.terrainSizeM} m, relief {c.reliefM} m, exponent {c.exponent}");
     }
 }
 

@@ -96,6 +96,7 @@ public class PresetDef
     public string Description { get; set; } = "";
     public double TerrainSizeM { get; set; } = 1000;
     public double[] ReliefM { get; set; } = [100];
+    public double[] Exponent { get; set; } = [1];   // 1 = no change, so deal and campie keep the same values
     public double MinHeightRange { get; set; } = 0.01;
 
     public RidgeRange Ridge { get; set; } = new();
@@ -154,6 +155,7 @@ public class PresetLibrary
             Preset = p.Name,
             TerrainSizeM = (float)p.TerrainSizeM,
             ReliefM = s.F(p.ReliefM, 1),
+            Exponent = s.F(p.Exponent, 2),
             MinHeightRange = (float)p.MinHeightRange,
 
             Ridge = new RidgeBlock

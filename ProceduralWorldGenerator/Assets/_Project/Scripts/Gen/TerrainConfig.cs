@@ -124,6 +124,7 @@ public class TerrainConfig
     // 1 unity unit = 1 meter
     public float terrainSizeM = 1000f;  // width and length
     public float reliefM = 100f;        // lowest to highest point after Normalize
+    public float exponent = 1f;         // h^exponent after Normalize: >1 = wide low valleys, sharp peaks
     public float minHeightRange = 0.01f; // below this (before Normalize) the terrain counts as flat
 
     public RidgeBlock ridge = new RidgeBlock();
