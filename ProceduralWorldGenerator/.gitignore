@@ -1,0 +1,79 @@
+# Unity generated folders
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Third-party / tutorial assets
+/Assets/BasicTerrainAssets/
+/Assets/BasicTerrainAssets.meta
+
+/Assets/GUITable/
+/Assets/GUITable.meta
+
+/Assets/TerrainDemoScene_URP/
+/Assets/TerrainDemoScene_URP.meta
+
+/Assets/TutorialInfo/
+/Assets/TutorialInfo.meta
+
+# Rider / JetBrains
+/.idea/
+*.DotSettings.user
+
+# Visual Studio
+/.vs/
+*.suo
+*.user
+*.userprefs
+*.opendb
+*.VC.db
+
+# Generated IDE files
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.tmp
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+
+# Builds and exported packages
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Crash and log files
+*.log
+sysinfo.txt
+mono_crash.*
+
+# Local configuration
+.env
+.env.*
+!.env.example
+
+*.key
+*.pem
+*.pfx
+*.p12
+/Assets/Packages/
+/Assets/Packages.meta
+/Assets/NatureManufacture Assets/
+/Assets/NatureManufacture Assets.meta
+/Assets/_TerrainAutoUpgrade/
+/Assets/_TerrainAutoUpgrade.meta
