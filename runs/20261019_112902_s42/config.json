@@ -1,0 +1,29 @@
+{
+    "schemaVersion": 1,
+    "seed": 42,
+    "preset": "hills",
+    "voronoiPeaks": 5,
+    "voronoiFallOff": 0.20000000298023225,
+    "voronoiDropOff": 0.6000000238418579,
+    "voronoiMinHeight": 0.10000000149011612,
+    "voronoiMaxHeight": 0.30000001192092898,
+    "voronoiType": "Combined",
+    "perlinLayers": [
+        {
+            "xScale": 0.004000000189989805,
+            "yScale": 0.004000000189989805,
+            "octaves": 4,
+            "persistance": 0.5,
+            "heightScale": 0.11999999731779099
+        },
+        {
+            "xScale": 0.029999999329447748,
+            "yScale": 0.029999999329447748,
+            "octaves": 3,
+            "persistance": 0.5,
+            "heightScale": 0.019999999552965165
+        }
+    ],
+    "smoothIterations": 1,
+    "minHeightRange": 0.009999999776482582
+}

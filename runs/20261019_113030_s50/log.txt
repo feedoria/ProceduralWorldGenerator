@@ -1,0 +1,6 @@
+[11:30:30] seed 50, preset hills
+[11:30:30] Reset done in 22 ms
+[11:30:30] Voronoi done in 168 ms
+[11:30:30] Multiple Perlin done in 127 ms
+[11:30:31] Smooth done in 384 ms
+[11:30:31] hash 717C7024B470C994

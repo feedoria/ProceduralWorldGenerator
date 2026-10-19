@@ -1,0 +1,6 @@
+[11:29:02] seed 42, preset hills
+[11:29:02] Reset done in 23 ms
+[11:29:03] Voronoi done in 186 ms
+[11:29:03] Multiple Perlin done in 130 ms
+[11:29:03] Smooth done in 442 ms
+[11:29:03] hash 61EB9A9D5F463C9F
