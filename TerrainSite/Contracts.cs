@@ -15,6 +15,7 @@ public class PerlinLayer
 public class RidgeBlock
 {
     public bool Enabled { get; set; }
+    public float Weight { get; set; } = 0.3f;
     public List<PerlinLayer> Layers { get; set; } = [];
 }
 

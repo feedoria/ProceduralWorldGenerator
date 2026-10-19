@@ -20,6 +20,8 @@ public class PerlinLayer
 public class RidgeBlock
 {
     public bool enabled = false;
+    // the ridges end up between 0 and weight, so the layers added after them still fit under 1
+    public float weight = 0.3f;
     // heightScale is ignored here, the step forces 1 so the noise crosses 0.5
     public List<PerlinLayer> layers = new List<PerlinLayer>
     {

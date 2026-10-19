@@ -37,6 +37,18 @@ public class RidgeStep : IStep
         // heightScale forced to 1: the noise has to cover 0..1 so the fold at 0.5 makes ridges
         t.perlinParameters = StepUtil.ToPerlinParams(ctx.config.ridge.layers, 1f);
         t.RidgeNoise();
+
+        // RidgeNoise gives heights between 0.5 and 1, nothing fits on top of that:
+        // unity clamps heights at 1, so anything added later would turn into a flat plateau
+        // so we bring the ridges down to 0..weight
+        var td = ctx.Data;
+        int res = td.heightmapResolution;
+        float[,] h = td.GetHeights(0, 0, res, res);
+        float w = ctx.config.ridge.weight;
+        for (int y = 0; y < res; y++)
+            for (int x = 0; x < res; x++)
+                h[y, x] = Mathf.Max(0f, (h[y, x] - 0.5f) * 2f * w);
+        td.SetHeights(0, 0, h);
     }
 }
 
@@ -100,11 +112,17 @@ public class NormalizeStep : IStep
         float[,] h = td.GetHeights(0, 0, res, res);
 
         float min = float.MaxValue, max = float.MinValue;
+        int atCeiling = 0;
         foreach (float v in h)
         {
             if (v < min) min = v;
             if (v > max) max = v;
+            if (v >= 0.9999f) atCeiling++;
         }
+        // heights stuck at 1 = the shape layers add up to more than 1 and got cut flat
+        float ceilingShare = (float)atCeiling / h.Length;
+        if (ceilingShare > 0.01f)
+            ctx.Log($"Normalize: WARNING {ceilingShare * 100:0.#}% of the terrain is cut at height 1, lower the layer weights");
         ctx.rawMin = min;
         ctx.rawMax = max;
 

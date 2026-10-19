@@ -16,6 +16,7 @@ public class LayerRange
 public class RidgeRange
 {
     public bool Enabled { get; set; }
+    public double[] Weight { get; set; } = [0.3];
     public List<LayerRange> Layers { get; set; } = [];
 }
 
@@ -155,7 +156,12 @@ public class PresetLibrary
             ReliefM = s.F(p.ReliefM, 1),
             MinHeightRange = (float)p.MinHeightRange,
 
-            Ridge = new RidgeBlock { Enabled = p.Ridge.Enabled, Layers = p.Ridge.Layers.Select(s.Layer).ToList() },
+            Ridge = new RidgeBlock
+            {
+                Enabled = p.Ridge.Enabled,
+                Weight = s.F(p.Ridge.Weight, 3),
+                Layers = p.Ridge.Layers.Select(s.Layer).ToList()
+            },
             Voronoi = new VoronoiBlock
             {
                 Enabled = p.Voronoi.Enabled,
@@ -174,7 +180,7 @@ public class PresetLibrary
                 Passes = s.I(p.Thermal.Passes),
                 Amount = s.F(p.Thermal.Amount)
             },
-            River = new RiverBlock 
+            River = new RiverBlock
             {
                 Enabled = p.River.Enabled,
                 Droplets = s.I(p.River.Droplets),
