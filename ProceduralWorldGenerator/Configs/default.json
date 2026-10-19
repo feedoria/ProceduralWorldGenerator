@@ -1,29 +1,88 @@
 {
-    "schemaVersion": 1,
-    "seed": 50,
-    "preset": "hills",
-    "voronoiPeaks": 5,
-    "voronoiFallOff": 0.20000000298023225,
-    "voronoiDropOff": 0.6000000238418579,
-    "voronoiMinHeight": 0.10000000149011612,
-    "voronoiMaxHeight": 0.30000001192092898,
-    "voronoiType": "Combined",
-    "perlinLayers": [
-        {
-            "xScale": 0.004000000189989805,
-            "yScale": 0.004000000189989805,
-            "octaves": 4,
-            "persistance": 0.5,
-            "heightScale": 0.11999999731779099
-        },
-        {
-            "xScale": 0.029999999329447748,
-            "yScale": 0.029999999329447748,
-            "octaves": 3,
-            "persistance": 0.5,
-            "heightScale": 0.019999999552965165
-        }
-    ],
-    "smoothIterations": 1,
-    "minHeightRange": 0.009999999776482582
+    "schemaVersion": 2,
+    "seed": 42,
+    "preset": "deal",
+    "terrainSizeM": 1000.0,
+    "reliefM": 100.0,
+    "minHeightRange": 0.009999999776482582,
+    "ridge": {
+        "enabled": false,
+        "layers": [
+            {
+                "xScale": 0.004999999888241291,
+                "yScale": 0.004999999888241291,
+                "octaves": 5,
+                "persistance": 0.5,
+                "heightScale": 1.0
+            }
+        ]
+    },
+    "voronoi": {
+        "enabled": false,
+        "peaks": 2,
+        "type": "Power",
+        "fallOff": 1.0,
+        "dropOff": 1.0,
+        "minHeight": 0.8500000238418579,
+        "maxHeight": 1.0
+    },
+    "perlin": {
+        "enabled": true,
+        "layers": [
+            {
+                "xScale": 0.006000000052154064,
+                "yScale": 0.006000000052154064,
+                "octaves": 4,
+                "persistance": 0.5,
+                "heightScale": 0.5
+            },
+            {
+                "xScale": 0.019999999552965165,
+                "yScale": 0.019999999552965165,
+                "octaves": 3,
+                "persistance": 0.5,
+                "heightScale": 0.07999999821186066
+            }
+        ]
+    },
+    "thermal": {
+        "enabled": true,
+        "talusDeg": 32.0,
+        "passes": 3,
+        "amount": 0.003000000026077032
+    },
+    "river": {
+        "enabled": true,
+        "droplets": 50,
+        "springs": 5,
+        "depthM": 2.0,
+        "lengthM": 200.0
+    },
+    "smooth": {
+        "enabled": true,
+        "iterations": 1
+    },
+    "water": {
+        "enabled": true,
+        "percentile": 0.03999999910593033
+    },
+    "textures": {
+        "enabled": true,
+        "sandBand": 0.019999999552965165,
+        "rockSlopeDeg": 32.0,
+        "snowEnabled": false,
+        "snowPercentile": 0.9300000071525574
+    },
+    "shoreline": {
+        "enabled": false
+    },
+    "targets": {
+        "enabled": true,
+        "meanSlopeMin": 4.0,
+        "meanSlopeMax": 12.0,
+        "under5Min": 0.20000000298023225,
+        "under5Max": 0.6000000238418579,
+        "over30Min": 0.0,
+        "over30Max": 0.05000000074505806
+    }
 }
