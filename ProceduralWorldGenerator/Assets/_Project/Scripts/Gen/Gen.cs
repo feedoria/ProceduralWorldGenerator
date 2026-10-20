@@ -71,21 +71,7 @@ public static class Gen
         File.WriteAllText(Path.Combine(ctx.outDir, "config.json"), config.ToJson());
         ctx.Log($"seed {config.seed}, preset {config.preset}");
 
-        // both randoms from the seed, same seed = same terrain
-        UnityEngine.Random.InitState(config.seed);
-        Utils.r = new System.Random(config.seed);   // Utils.Shuffle (used by River) has its own random
-
-        foreach (var step in Pipeline.Steps())
-        {
-            if (!step.IsEnabled(config))
-            {
-                ctx.Log($"{step.Name}: off");
-                continue;
-            }
-            var sw = Stopwatch.StartNew();
-            step.Apply(ctx);
-            ctx.Log($"{step.Name}: {sw.ElapsedMilliseconds} ms");
-        }
+        ApplySteps(ctx);
 
         var metrics = RunOutput.Write(ctx);
         metrics.targetFails = Quality.Check(config, metrics);
@@ -101,6 +87,37 @@ public static class Gen
 
         ctx.Log($"done in {metrics.durationMs} ms, hash {metrics.heightHash}");
         return Ok;
+    }
+
+    // seed + every step, shared by Run (with output) and Preview (3D view, no output)
+    static void ApplySteps(RunContext ctx)
+    {
+        var config = ctx.config;
+
+        // both randoms from the seed, same seed = same terrain
+        UnityEngine.Random.InitState(config.seed);
+        Utils.r = new System.Random(config.seed);   // Utils.Shuffle (used by River) has its own random
+
+        foreach (var step in Pipeline.Steps())
+        {
+            if (!step.IsEnabled(config))
+            {
+                ctx.Log($"{step.Name}: off");
+                continue;
+            }
+            var sw = Stopwatch.StartNew();
+            step.Apply(ctx);
+            ctx.Log($"{step.Name}: {sw.ElapsedMilliseconds} ms");
+        }
+    }
+
+    // builds the terrain again from a run's config.json, only to look at it in 3D
+    // same config = same terrain (same hash), so nothing has to be saved or loaded
+    public static CustomTerrain Preview(TerrainConfig config)
+    {
+        var ctx = new RunContext { terrain = FindGenTerrain(), config = config, outDir = null };
+        ApplySteps(ctx);
+        return ctx.terrain;
     }
 
     public static CustomTerrain FindGenTerrain()

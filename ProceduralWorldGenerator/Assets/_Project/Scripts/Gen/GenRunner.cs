@@ -3,50 +3,67 @@ using System.Collections;
 using System.IO;
 using UnityEngine;
 
-// the entry point of the exe, in the editor i use Tools/Gen instead
-// one-shot mode for now: Generator.exe -config cfg.json -out folder
-// it generates, writes the files and closes with the exit code (0 ok, 1 failed, 2 rejected)
+// what the .exe does when it starts, reads the command line:
+//   -config cfg.json -out dir   generate, write the files, close (what the site's worker uses)
+//   -config cfg.json -view      generate and stay open with a free camera (the 3D view)
+// in the editor it does nothing, there you use Tools/Gen
 public class GenRunner : MonoBehaviour
 {
     IEnumerator Start()
     {
-        // otherwise the exe freezes when i click on another window (like the browser)
-        Application.runInBackground = true;
+        Application.runInBackground = true;   // keep working even if the window isn't focused
+        if (Application.isEditor) yield break;
 
-        if (Application.isEditor) yield break; // play mode in the editor shouldnt start anything
+        yield return null;   // one frame, so the scene is fully loaded
 
-        // waiting one frame so the terrain and the render pipeline are fully set up before i use them
-        yield return null;
+        string configPath = Arg("-config");
+        if (configPath == null) yield break;   // started by hand, nothing to do
 
-        string cfg = Arg("-config");
-        string outDir = Arg("-out");
-
-        if (cfg == null && outDir == null)
+        TerrainConfig config;
+        try
         {
-            // no arguments = nothing to do yet, later this is gonna be the viewer mode that waits for jobs
-            Debug.Log("[Gen] no -config / -out, idle");
+            config = TerrainConfig.FromJson(File.ReadAllText(configPath));
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+            Application.Quit(Gen.Failed);
             yield break;
         }
 
-        int code = Gen.Failed;
-        if (cfg != null && outDir != null && File.Exists(cfg))
+        if (HasFlag("-view"))
         {
-            var config = TerrainConfig.FromJson(File.ReadAllText(cfg));
-            code = Gen.Run(config, Path.GetFullPath(outDir));
-        }
-        else
-        {
-            Debug.LogError("[Gen] need both -config (existing file) and -out");
+            try
+            {
+                var t = Gen.Preview(config);
+                FlyCamera.SetUp(t.GetComponent<Terrain>(), $"{config.preset} · seed {config.seed}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                Application.Quit(Gen.Failed);
+            }
+            yield break;   // stays open until Esc or the window is closed
         }
 
+        string outDir = Arg("-out");
+        if (outDir == null)
+        {
+            Debug.LogError("[Gen] -config without -out or -view");
+            Application.Quit(Gen.Failed);
+            yield break;
+        }
+
+        int code = Gen.Run(config, Path.GetFullPath(outDir));
         Application.Quit(code);
     }
 
-    // finds the value after a name in the command line, ex: -config C:\x.json -> C:\x.json
     static string Arg(string name)
     {
         string[] args = Environment.GetCommandLineArgs();
         int i = Array.IndexOf(args, name);
         return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
     }
+
+    static bool HasFlag(string name) => Array.IndexOf(Environment.GetCommandLineArgs(), name) >= 0;
 }

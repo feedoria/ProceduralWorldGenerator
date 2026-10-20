@@ -4,9 +4,11 @@
     "preset": "deal",
     "terrainSizeM": 1000.0,
     "reliefM": 100.0,
+    "exponent": 1.0,
     "minHeightRange": 0.009999999776482582,
     "ridge": {
         "enabled": false,
+        "weight": 0.30000001192092898,
         "layers": [
             {
                 "xScale": 0.004999999888241291,

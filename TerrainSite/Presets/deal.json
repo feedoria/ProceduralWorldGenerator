@@ -18,7 +18,7 @@
   "river": { "enabled": true, "droplets": [30, 80], "springs": [3, 5], "depthM": [1, 3], "lengthM": [150, 300] },
   "smooth": { "enabled": true, "iterations": [2, 3] },
   "water": { "enabled": true, "percentile": [0.02, 0.06] },
-  "textures": { "enabled": true, "sandBand": [0.01, 0.03], "rockSlopeDeg": [30, 35], "snowEnabled": false },
+  "textures": { "enabled": true, "sandBand": [0.01, 0.03], "rockSlopeDeg": [30, 35], "snowEnabled": false, "tileSizesM": [20, 25, 30, 60, 200, 250] },
   "shoreline": { "enabled": false },
 
   "targets": { "enabled": true, "meanSlopeDeg": [8, 16], "under5": [0.05, 0.35], "over30": [0, 0.05] }

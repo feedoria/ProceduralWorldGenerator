@@ -92,8 +92,14 @@ public class TextureBlock
     // splat table order on GenTerrain: 0 sand, 1 grass, 2 rock, 3 snow
     public float sandBand = 0.02f;        // sand covers the next 2% of the terrain above the water
     public float rockSlopeDeg = 32f;      // rock above this slope (90 = no rock)
+    public float rockBlendDeg = 6f;       // grass and rock mix between rockSlopeDeg - 6 and + 6, so no hard edge
     public bool snowEnabled = false;
     public float snowPercentile = 0.93f;  // snow on the highest 7%
+    // how big one copy of each texture is, in meters: sand, grass, rock, snow, grass far, rock far
+    // the two "far" ones are only used when the splat table has 6 rows
+    // comes from the preset so a 3 km mountain doesn't repeat textures 3x more than a 1 km hill
+    // empty = keep the Tile Size from the Inspector
+    public float[] tileSizesM = { 30f, 60f, 80f, 60f };
 }
 
 [Serializable]

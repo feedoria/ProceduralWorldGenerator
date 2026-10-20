@@ -256,7 +256,11 @@ public class TextureStep : IStep
             ctx.Log("Textures: the splat table needs 4 rows (sand, grass, rock, snow), skipped");
             return;
         }
-        for (int i = 0; i < 4; i++)
+        // optional rows 4 and 5: the same grass and rock textures again, but much bigger
+        // two sizes of the same texture mixed together hide the repeating pattern seen from far away
+        bool farRows = t.splatHeights.Count >= 6;
+        int used = farRows ? 6 : 4;
+        for (int i = 0; i < used; i++)
         {
             if (t.splatHeights[i].texture == null)
             {
@@ -269,15 +273,32 @@ public class TextureStep : IStep
         float sandTop = HeightStats.Percentile(sorted, ctx.waterPercentile + tx.sandBand);
         float snowLine = tx.snowEnabled ? HeightStats.Percentile(sorted, tx.snowPercentile) : 2f;  // 2 = never
         float rock = tx.rockSlopeDeg;
+        // grass goes a bit above the rock angle and rock starts a bit below it:
+        // in between both rows match, SplatMaps mixes them 50/50 and the edge becomes a soft band
+        float grassMax = Mathf.Min(rock + tx.rockBlendDeg, 90f);
+        float rockMin = Mathf.Max(rock - tx.rockBlendDeg, 0f);
 
-        Set(t.splatHeights[0], 0f, sandTop, 0f, rock);                      // sand: by the water, not steep
-        Set(t.splatHeights[1], sandTop, Mathf.Min(snowLine, 1f), 0f, rock); // grass: everything in between
-        Set(t.splatHeights[2], 0f, 1f, rock, 90f);                          // rock: any height, steep
+        Set(t.splatHeights[0], 0f, sandTop, 0f, grassMax);                      // sand: by the water, not steep
+        Set(t.splatHeights[1], sandTop, Mathf.Min(snowLine, 1f), 0f, grassMax); // grass: everything in between
+        Set(t.splatHeights[2], 0f, 1f, rockMin, 90f);                           // rock: any height, steep
         Set(t.splatHeights[3], snowLine, 1f, 0f, 90f);                      // snow: the top
-        for (int i = 4; i < t.splatHeights.Count; i++)
+        if (farRows)
+        {
+            Set(t.splatHeights[4], sandTop, Mathf.Min(snowLine, 1f), 0f, grassMax); // grass again, same zone, big tiles
+            Set(t.splatHeights[5], 0f, 1f, rockMin, 90f);                           // rock again, same zone, big tiles
+        }
+        for (int i = used; i < t.splatHeights.Count; i++)
             Set(t.splatHeights[i], 2f, 2f, 90f, 90f);                       // extra rows never show
 
+        // texture tiling from the preset, in meters; 0 or missing = keep what the Inspector has
+        for (int i = 0; i < used && i < tx.tileSizesM.Length; i++)
+        {
+            float size = tx.tileSizesM[i];
+            if (size > 0f) t.splatHeights[i].tileSize = new Vector2(size, size);
+        }
+
         t.SplatMaps();
+        if (!farRows) ctx.Log("Textures: no rows 4-5 (far grass/rock), repetition will show from far away");
         ctx.Log($"Textures: sand under {sandTop:0.000}, rock over {rock:0.#} deg, snow {(tx.snowEnabled ? "over " + snowLine.ToString("0.000") : "off")}");
     }
 
@@ -290,9 +311,9 @@ public class TextureStep : IStep
         s.minSlope = minSlope;
         s.maxSlope = maxSlope;
         s.splatOffset = 0.01f;        // soft edges between the bands
-        s.splatNoiseXScale = 0.01f;
-        s.splatNoiseYScale = 0.01f;
-        s.splatNoiseScaler = 0.02f;
+        s.splatNoiseXScale = 0.05f;   // smaller noise blobs, so the edges aren't straight lines
+        s.splatNoiseYScale = 0.05f;
+        s.splatNoiseScaler = 0.04f;   // how far the edges can wander
     }
 }
 

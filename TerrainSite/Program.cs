@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDb>(o => o.UseSqlite($"Data Source={Path.Combin
 builder.Services.AddSingleton<RunQueue>();
 builder.Services.AddSingleton<PresetLibrary>();
 builder.Services.AddHostedService<GeneratorWorker>();
+builder.Services.AddSingleton<ViewerService>();
 
 var app = builder.Build();
 
@@ -59,6 +60,18 @@ app.MapGet("/api/runs", async (AppDb db) =>
 
 app.MapGet("/api/runs/{id:int}", async (int id, AppDb db) =>
     await db.Runs.FindAsync(id) is { } run ? Results.Ok(ToDto(run)) : Results.NotFound());
+
+// opens the 3D window on this computer (the site and unity run on the same machine)
+app.MapPost("/api/runs/{id:int}/view", async (int id, AppDb db, ViewerService viewer) =>
+{
+    var run = await db.Runs.FindAsync(id);
+    if (run == null) return Results.NotFound();
+    if (run.State is not (RunState.Done or RunState.Rejected))
+        return Results.BadRequest(new { error = "the run isn't finished" });
+
+    string? error = viewer.Open(run);
+    return error == null ? Results.Ok() : Results.BadRequest(new { error });
+});
 
 app.Run();
 
