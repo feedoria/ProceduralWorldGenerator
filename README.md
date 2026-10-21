@@ -15,15 +15,16 @@ A procedural 3D terrain generator in **Unity**, controlled from an **ASP.NET Cor
 - **Measures the result.** Every run reports height statistics, mean slope, slope distribution and water level, so "looks good" becomes something you can check.
 - **Rejects bad terrains.** A quality check compares the result against the preset's targets. If a terrain comes out flat or too steep, it's thrown away and regenerated with a new seed.
 - **Web dashboard.** Settings on the left, the terrain in the middle, statistics on the right. Every run is saved with its config, images and metrics.
-- **3D view.** Any finished run opens in a free-fly camera window.
+- **3D view.** Any finished run can be explored with a free-fly camera, right in the page.
 
-<p align="center">
-  <img src="docs/media/site.png" width="800" alt="The web dashboard">
-</p>
+### Mountain: flying through the terrain in the 3D tab
+<img src="docs/media/mountain.png" width="900" alt="Mountain preset in the 3D view">
 
-| Mountain | Hills | Plain |
-|---|---|---|
-| <img src="docs/media/mountain.png" width="260"> | <img src="docs/media/hills.png" width="260"> | <img src="docs/media/plain.png" width="260"> |
+### Hills: oblique view, all preset targets passed on the second attempt
+<img src="docs/media/hills.png" width="900" alt="Hills preset, oblique view">
+
+### Plain: heightmap and slope statistics
+<img src="docs/media/plain.png" width="900" alt="Plain preset, heightmap">
 
 ## How it works
 
@@ -58,8 +59,7 @@ The two halves never talk directly. They only share a JSON config and a run fold
 - [x] Deterministic generation pipeline (same seed → same terrain)
 - [x] Presets with parameter ranges and automatic quality checks
 - [x] Web app with run queue, images and metrics
-- [x] 3D fly-through of any run
-- [ ] 3D view embedded directly in the page
+- [x] 3D fly-through of any run, inside the page
 - [ ] Calibrating the presets on real elevation data (DEMs) from around the world
 - [ ] Biomes and vegetation placement (Poisson-disc sampling)
 - [ ] Mixed terrains (mountain + hills + valley on the same map)
