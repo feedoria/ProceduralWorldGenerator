@@ -46,7 +46,7 @@ A procedural 3D terrain generator in **Unity**, controlled from an **ASP.NET Cor
 
 The two halves never talk directly. They only share a JSON config and a run folder, so each side can change without breaking the other.
 
-- **Pipeline of steps.** Each algorithm is a step (`IStep`) and the order is fixed. A preset only switches steps on or off and sets their values.
+- **Pipeline of steps.** Each algorithm is a step and the order is fixed. A preset only switches steps on or off and sets their values.
 - **Relative layers.** Water, sand, rock and snow aren't fixed heights. They come from the generated terrain itself: water is a percentile of the heights, rock depends on slope, snow sits on the highest part. So they fit any relief.
 - **Queue.** The site generates one terrain at a time and retries rejected ones automatically.
 
